@@ -1,29 +1,927 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useMemo, useState, type ReactNode } from "react";
+import { motion, useReducedMotion } from "framer-motion";
+import { QRCodeSVG } from "qrcode.react";
+import salonHero from "@/assets/salon-hero.jpg";
+import mockupPhone from "@/assets/mockup-phone.jpg";
+import mercadoLogo from "@/assets/mercadopago-logo.png";
+import founderPhoto from "@/assets/founder.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Your App" },
-      { name: "description", content: "Replace this with a one-sentence description of your app." },
-      { property: "og:title", content: "Your App" },
-      { property: "og:description", content: "Replace this with a one-sentence description of your app." },
+      { title: "NEX — Páginas Premium para Salões de Beleza em Macaé" },
+      {
+        name: "description",
+        content:
+          "Página profissional, mobile-first e otimizada para conversão. Mais agendamentos, mais clientes no WhatsApp e mais vendas no Dia dos Namorados. Vagas limitadas para salões em Macaé.",
+      },
+      { property: "og:title", content: "NEX — Páginas Premium para Salões em Macaé" },
+      {
+        property: "og:description",
+        content:
+          "Página promocional profissional para salões de beleza venderem mais no Dia dos Namorados. Atendimento exclusivo em Macaé.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "theme-color", content: "#000000" },
     ],
+    links: [{ rel: "canonical", href: "/" }],
   }),
-  component: Index,
+  component: LandingPage,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
+/* ---------- Constants ---------- */
+
+const WHATSAPP_NUMBER = "5522974005878";
+const PIX_KEY = "sitesnex@gmail.com";
+const PIX_HOLDER = "Nicole Vera Cruz";
+const PIX_BANK = "Mercado Pago";
+
+const PLANS = [
+  {
+    id: "basico",
+    name: "Básico",
+    price: "R$ 150",
+    deposit: "R$ 50",
+    featured: false,
+    tagline: "Presença rápida e objetiva.",
+    items: [
+      "Landing page profissional",
+      "Botão direto para WhatsApp",
+      "Otimização mobile",
+      "1 banner promocional",
+      "Entrega rápida",
+      "Estrutura básica de conversão",
+    ],
+    limit: "Até 1 alteração após envio da prévia.",
+  },
+  {
+    id: "plus",
+    name: "Plus",
+    price: "R$ 320",
+    deposit: "R$ 120",
+    featured: true,
+    tagline: "Mais conversão e apresentação premium.",
+    items: [
+      "Visual premium",
+      "Promoções personalizadas",
+      "Banners extras",
+      "Integração WhatsApp avançada",
+      "Estrutura otimizada para anúncios",
+      "Prioridade média na fila",
+      "Experiência mais premium",
+    ],
+    limit: "Até 3 alterações após envio da prévia.",
+  },
+  {
+    id: "avancado",
+    name: "Avançado",
+    price: "R$ 520",
+    deposit: "R$ 180",
+    featured: false,
+    tagline: "Máximo nível de apresentação profissional.",
+    items: [
+      "Experiência premium completa",
+      "Design sofisticado",
+      "Estrutura avançada de conversão",
+      "Personalização premium",
+      "Prioridade máxima na fila",
+      "Foco máximo em conversão",
+      "Maior impacto profissional",
+    ],
+    limit: "Até 5 alterações após envio da prévia.",
+  },
+] as const;
+
+type Plan = (typeof PLANS)[number];
+
+function waLink(message: string) {
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+}
+
+/* ---------- Primitives ---------- */
+
+function FadeIn({ children, delay = 0 }: { children: ReactNode; delay?: number }) {
+  const reduce = useReducedMotion();
+  if (reduce) return <>{children}</>;
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
+    <motion.div
+      initial={{ opacity: 0, y: 14 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] }}
     >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+      {children}
+    </motion.div>
+  );
+}
+
+function Eyebrow({ children }: { children: ReactNode }) {
+  return (
+    <div className="flex items-center gap-2 eyebrow">
+      <span className="h-px w-6 bg-foreground/30" />
+      <span>{children}</span>
     </div>
+  );
+}
+
+function PrimaryCTA({ href, children, full = false }: { href: string; children: ReactNode; full?: boolean }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`group inline-flex ${full ? "w-full" : ""} items-center justify-center gap-2 rounded-full bg-foreground px-7 py-4 text-sm font-medium text-background transition-all hover:bg-foreground/90 active:scale-[0.98]`}
+    >
+      {children}
+      <span aria-hidden className="inline-block transition-transform group-hover:translate-x-0.5">→</span>
+    </a>
+  );
+}
+
+function GhostCTA({ href, children, full = false }: { href: string; children: ReactNode; full?: boolean }) {
+  return (
+    <a
+      href={href}
+      className={`inline-flex ${full ? "w-full" : ""} items-center justify-center gap-2 rounded-full border border-foreground/15 bg-background px-7 py-4 text-sm font-medium text-foreground transition-all hover:border-foreground/40 active:scale-[0.98]`}
+    >
+      {children}
+    </a>
+  );
+}
+
+/* ---------- Sections ---------- */
+
+function Nav() {
+  return (
+    <header className="sticky top-0 z-40 border-b hairline bg-background/80 backdrop-blur-xl">
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3.5">
+        <a href="#top" className="flex items-center gap-2">
+          <span className="grid h-7 w-7 place-items-center rounded-md bg-foreground text-background text-[11px] font-semibold tracking-tight">N</span>
+          <span className="text-sm font-medium tracking-tight">NEX <span className="text-muted-foreground">· Salões</span></span>
+        </a>
+        <a
+          href={waLink("Olá, quero atendimento para meu salão em Macaé.")}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-xs font-medium text-background hover:bg-foreground/90"
+        >
+          Falar no WhatsApp
+        </a>
+      </div>
+    </header>
+  );
+}
+
+function Hero() {
+  return (
+    <section id="top" className="relative overflow-hidden bg-background">
+      <div className="mx-auto max-w-6xl px-5 pt-10 pb-16 sm:pt-16 sm:pb-24">
+        <FadeIn>
+          <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium">
+            <span className="rounded-full border hairline px-3 py-1 text-muted-foreground">
+              <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-foreground align-middle" />
+              Atendimento exclusivo em Macaé · RJ
+            </span>
+            <span className="rounded-full border hairline px-3 py-1 text-muted-foreground">Vagas limitadas</span>
+          </div>
+        </FadeIn>
+
+        <FadeIn delay={0.05}>
+          <h1 className="h-display mt-6 max-w-4xl text-foreground">
+            Seu salão preparado para <span className="italic font-normal text-muted-foreground">lotar</span> no Dia dos Namorados.
+          </h1>
+        </FadeIn>
+
+        <FadeIn delay={0.1}>
+          <p className="mt-6 max-w-xl text-base sm:text-lg leading-relaxed text-muted-foreground">
+            Página profissional para atrair mais clientes, aumentar agendamentos e vender direto pelo WhatsApp. Mobile-first, premium e otimizada para anúncios no Instagram.
+          </p>
+        </FadeIn>
+
+        <FadeIn delay={0.15}>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <PrimaryCTA href="#planos">Ver planos e garantir vaga</PrimaryCTA>
+            <GhostCTA href={waLink("Olá, quero atendimento para meu salão em Macaé.")}>Falar no WhatsApp</GhostCTA>
+          </div>
+        </FadeIn>
+
+        <FadeIn delay={0.2}>
+          <dl className="mt-12 grid grid-cols-3 gap-4 border-t hairline pt-6 max-w-xl">
+            <div>
+              <dt className="text-[10px] uppercase tracking-widest text-muted-foreground">Entrega</dt>
+              <dd className="mt-1 text-lg font-medium tracking-tight">7 dias</dd>
+            </div>
+            <div>
+              <dt className="text-[10px] uppercase tracking-widest text-muted-foreground">Foco</dt>
+              <dd className="mt-1 text-lg font-medium tracking-tight">Conversão</dd>
+            </div>
+            <div>
+              <dt className="text-[10px] uppercase tracking-widest text-muted-foreground">Cidade</dt>
+              <dd className="mt-1 text-lg font-medium tracking-tight">Macaé</dd>
+            </div>
+          </dl>
+        </FadeIn>
+
+        <FadeIn delay={0.25}>
+          <div className="relative mt-12 overflow-hidden rounded-3xl ring-inset-hairline">
+            <img
+              src={salonHero}
+              alt="Salão de beleza minimalista premium"
+              width={1280}
+              height={1600}
+              className="aspect-[4/5] sm:aspect-[16/9] w-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0" />
+            <div className="absolute bottom-5 left-5 right-5 flex items-end justify-between gap-3 text-white">
+              <p className="text-xs uppercase tracking-[0.2em] opacity-80">Mobile-first · Premium · Conversão</p>
+            </div>
+          </div>
+        </FadeIn>
+      </div>
+    </section>
+  );
+}
+
+const BENEFITS = [
+  { t: "Mais agendamentos", d: "Estrutura criada para transformar visitas em horários marcados." },
+  { t: "Mais clientes no WhatsApp", d: "Botões diretos em pontos estratégicos da página." },
+  { t: "Mais autoridade", d: "Apresentação que comunica profissionalismo e cuidado." },
+  { t: "Visual profissional", d: "Tipografia, espaçamento e fotografia em padrão premium." },
+  { t: "Conversão otimizada", d: "Cada seção empurra o visitante para o próximo passo." },
+  { t: "Página premium mobile", d: "90% das clientes acessam pelo celular — tudo pensado para elas." },
+  { t: "Promoções para 12/06", d: "Banners e seções específicas para Dia dos Namorados." },
+  { t: "Atendimento rápido", d: "Comunicação direta com a equipe pelo WhatsApp." },
+];
+
+function Benefits() {
+  return (
+    <section className="border-t hairline bg-surface">
+      <div className="mx-auto max-w-6xl px-5 py-20 sm:py-28">
+        <FadeIn><Eyebrow>Por que sua cliente vai marcar</Eyebrow></FadeIn>
+        <FadeIn delay={0.05}>
+          <h2 className="h-section mt-4 max-w-3xl">Construído para gerar reservas, não impressionar agências.</h2>
+        </FadeIn>
+
+        <div className="mt-12 grid grid-cols-1 gap-px overflow-hidden rounded-2xl border hairline bg-hairline sm:grid-cols-2 lg:grid-cols-4">
+          {BENEFITS.map((b, i) => (
+            <FadeIn key={b.t} delay={i * 0.03}>
+              <div className="h-full bg-background p-6 transition-colors hover:bg-surface">
+                <span className="text-xs font-mono text-muted-foreground">0{i + 1}</span>
+                <h3 className="mt-6 text-base font-medium tracking-tight">{b.t}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{b.d}</p>
+              </div>
+            </FadeIn>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Mockups() {
+  return (
+    <section className="border-t hairline bg-background">
+      <div className="mx-auto max-w-6xl px-5 py-20 sm:py-28">
+        <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
+          <FadeIn>
+            <div>
+              <Eyebrow>Apresentação</Eyebrow>
+              <h2 className="h-section mt-4">Uma página que parece um catálogo de marca premium.</h2>
+              <p className="mt-5 max-w-md text-muted-foreground leading-relaxed">
+                Composição minimalista, fotografia editorial, hierarquia tipográfica refinada. Cada detalhe trabalha o posicionamento do seu salão.
+              </p>
+              <ul className="mt-8 space-y-3 text-sm">
+                {["Layout 100% mobile", "WhatsApp em todos os pontos", "Banners de promoção", "Seção de agendamento rápido"].map(
+                  (i) => (
+                    <li key={i} className="flex items-center gap-3">
+                      <span className="h-1.5 w-1.5 rounded-full bg-foreground" />
+                      <span>{i}</span>
+                    </li>
+                  ),
+                )}
+              </ul>
+            </div>
+          </FadeIn>
+
+          <FadeIn delay={0.1}>
+            <div className="relative">
+              <div className="absolute -inset-6 -z-10 rounded-3xl bg-surface" />
+              <img
+                src={mockupPhone}
+                alt="Mockup mobile da página"
+                width={1024}
+                height={1280}
+                loading="lazy"
+                className="w-full rounded-2xl object-cover"
+              />
+            </div>
+          </FadeIn>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ---------- Plans ---------- */
+
+function Plans({ onChoose }: { onChoose: (p: Plan) => void }) {
+  return (
+    <section id="planos" className="border-t hairline bg-background">
+      <div className="mx-auto max-w-6xl px-5 py-20 sm:py-28">
+        <FadeIn><Eyebrow>Planos</Eyebrow></FadeIn>
+        <FadeIn delay={0.05}>
+          <h2 className="h-section mt-4 max-w-2xl">Escolha o nível de apresentação do seu salão.</h2>
+        </FadeIn>
+        <FadeIn delay={0.1}>
+          <p className="mt-4 max-w-xl text-sm text-muted-foreground">
+            O valor do sinal é descontado do valor total. Após a aprovação da prévia funcional, o restante libera a versão final.
+          </p>
+        </FadeIn>
+
+        <div className="mt-12 grid grid-cols-1 gap-5 lg:grid-cols-3">
+          {PLANS.map((p, i) => (
+            <FadeIn key={p.id} delay={i * 0.05}>
+              <article
+                className={`relative flex h-full flex-col rounded-2xl border p-6 sm:p-7 ${
+                  p.featured
+                    ? "border-foreground bg-foreground text-background"
+                    : "hairline bg-background"
+                }`}
+              >
+                {p.featured && (
+                  <span className="absolute -top-3 left-6 rounded-full bg-background px-3 py-1 text-[10px] uppercase tracking-widest text-foreground ring-inset-hairline">
+                    Mais escolhido
+                  </span>
+                )}
+                <div className="flex items-baseline justify-between">
+                  <h3 className="text-lg font-medium tracking-tight">{p.name}</h3>
+                  <span className={`text-[11px] uppercase tracking-widest ${p.featured ? "text-background/60" : "text-muted-foreground"}`}>
+                    Sinal {p.deposit}
+                  </span>
+                </div>
+                <div className="mt-5 flex items-baseline gap-1.5">
+                  <span className="text-4xl font-semibold tracking-tight">{p.price}</span>
+                  <span className={`text-xs ${p.featured ? "text-background/60" : "text-muted-foreground"}`}>· valor total</span>
+                </div>
+                <p className={`mt-2 text-sm ${p.featured ? "text-background/70" : "text-muted-foreground"}`}>{p.tagline}</p>
+
+                <ul className="mt-6 space-y-2.5 text-sm">
+                  {p.items.map((it) => (
+                    <li key={it} className="flex items-start gap-2.5">
+                      <span className={`mt-1.5 h-1 w-1 shrink-0 rounded-full ${p.featured ? "bg-background" : "bg-foreground"}`} />
+                      <span className={p.featured ? "text-background/90" : ""}>{it}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <div className={`mt-6 rounded-lg px-3 py-2.5 text-xs ${p.featured ? "bg-background/10 text-background/80" : "bg-surface text-muted-foreground"}`}>
+                  {p.limit}
+                </div>
+
+                <button
+                  onClick={() => onChoose(p)}
+                  className={`mt-7 w-full rounded-full px-5 py-3.5 text-sm font-medium transition-all active:scale-[0.98] ${
+                    p.featured
+                      ? "bg-background text-foreground hover:bg-background/90"
+                      : "bg-foreground text-background hover:bg-foreground/90"
+                  }`}
+                >
+                  Escolher {p.name}
+                </button>
+              </article>
+            </FadeIn>
+          ))}
+        </div>
+
+        <p className="mt-8 text-center text-xs text-muted-foreground">
+          Valor do sinal sempre descontado do total. Reserva confirmada após envio do comprovante.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+/* ---------- Payment ---------- */
+
+function Payment({ selected }: { selected: Plan }) {
+  const [copied, setCopied] = useState(false);
+  const copyKey = async () => {
+    try {
+      await navigator.clipboard.writeText(PIX_KEY);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {/* noop */}
+  };
+
+  const pixPayload = useMemo(
+    () =>
+      `PIX MERCADO PAGO\nChave: ${PIX_KEY}\nTitular: ${PIX_HOLDER}\nPlano: ${selected.name} — Sinal ${selected.deposit}`,
+    [selected],
+  );
+
+  return (
+    <section id="pagamento" className="border-t hairline bg-surface">
+      <div className="mx-auto max-w-6xl px-5 py-20 sm:py-28">
+        <FadeIn><Eyebrow>Pagamento do sinal</Eyebrow></FadeIn>
+        <FadeIn delay={0.05}>
+          <h2 className="h-section mt-4 max-w-2xl">PIX seguro via Mercado Pago.</h2>
+        </FadeIn>
+        <FadeIn delay={0.1}>
+          <p className="mt-4 max-w-xl text-sm text-muted-foreground">
+            O sinal reserva sua vaga na fila de produção e é descontado do valor total. Atendimento confirmado após envio do comprovante.
+          </p>
+        </FadeIn>
+
+        <div className="mt-12 grid gap-5 lg:grid-cols-[1.1fr_1fr]">
+          <FadeIn>
+            <div className="rounded-2xl border hairline bg-background p-6 sm:p-8">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <img src={mercadoLogo} alt="Mercado Pago" className="h-9 w-9 rounded-lg bg-foreground object-contain p-1" />
+                  <div>
+                    <p className="text-xs uppercase tracking-widest text-muted-foreground">Instituição</p>
+                    <p className="text-sm font-medium">{PIX_BANK}</p>
+                  </div>
+                </div>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1 text-[10px] uppercase tracking-widest text-muted-foreground ring-inset-hairline">
+                  <LockIcon /> Seguro
+                </span>
+              </div>
+
+              <div className="mt-6 grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Titular</p>
+                  <p className="mt-1 text-sm font-medium">{PIX_HOLDER}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Plano selecionado</p>
+                  <p className="mt-1 text-sm font-medium">{selected.name} · Sinal {selected.deposit}</p>
+                </div>
+              </div>
+
+              <div className="mt-6 rounded-xl bg-surface p-4 ring-inset-hairline">
+                <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Chave PIX</p>
+                <div className="mt-1.5 flex items-center justify-between gap-3">
+                  <code className="truncate text-sm font-medium">{PIX_KEY}</code>
+                  <button
+                    onClick={copyKey}
+                    className="shrink-0 rounded-full bg-foreground px-3 py-1.5 text-[11px] font-medium text-background hover:bg-foreground/90"
+                  >
+                    {copied ? "Copiado" : "Copiar"}
+                  </button>
+                </div>
+              </div>
+
+              <ul className="mt-6 space-y-2 text-xs text-muted-foreground">
+                <li>· O sinal é descontado do valor total do projeto.</li>
+                <li>· Após a aprovação da prévia funcional, o restante libera a versão final.</li>
+                <li>· Atendimento confirmado após envio do comprovante pelo WhatsApp.</li>
+              </ul>
+
+              <div className="mt-6">
+                <PrimaryCTA
+                  href={waLink(
+                    `Olá, já enviei o sinal do plano ${selected.name} (${selected.deposit}) e quero iniciar minha página.`,
+                  )}
+                  full
+                >
+                  Enviar comprovante no WhatsApp
+                </PrimaryCTA>
+              </div>
+            </div>
+          </FadeIn>
+
+          <FadeIn delay={0.05}>
+            <div className="flex h-full flex-col items-center justify-center rounded-2xl border hairline bg-background p-6 sm:p-8 text-center">
+              <p className="eyebrow">QR Code PIX</p>
+              <div className="mt-5 rounded-xl bg-white p-4 ring-inset-hairline">
+                <QRCodeSVG value={pixPayload} size={176} level="M" />
+              </div>
+              <p className="mt-5 max-w-[26ch] text-xs text-muted-foreground">
+                Aponte a câmera do seu banco. A chave e os dados aparecem automaticamente.
+              </p>
+              <div className="mt-4 text-[11px] font-mono text-muted-foreground">
+                {PIX_HOLDER} · {PIX_BANK}
+              </div>
+            </div>
+          </FadeIn>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function LockIcon() {
+  return (
+    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden>
+      <rect x="4" y="11" width="16" height="10" rx="2" />
+      <path d="M8 11V8a4 4 0 1 1 8 0v3" />
+    </svg>
+  );
+}
+
+/* ---------- Timeline ---------- */
+
+const STEPS = [
+  { t: "Escolha seu plano", d: "Selecione o nível que combina com seu salão." },
+  { t: "Envie o formulário", d: "Informações essenciais para começarmos." },
+  { t: "Pague o sinal via PIX", d: "Reserva sua vaga na fila de produção." },
+  { t: "Envie comprovante + fotos", d: "Tudo direto pelo WhatsApp." },
+  { t: "Projeto entra na fila", d: "Acompanhamento próximo durante a produção." },
+  { t: "Prévia em até 7 dias", d: "Versão funcional para sua aprovação." },
+  { t: "Pague o restante", d: "Sinal descontado do valor total." },
+  { t: "Página final liberada", d: "Pronta para anúncios e Instagram." },
+];
+
+function Timeline() {
+  return (
+    <section className="border-t hairline bg-background">
+      <div className="mx-auto max-w-6xl px-5 py-20 sm:py-28">
+        <FadeIn><Eyebrow>Como funciona</Eyebrow></FadeIn>
+        <FadeIn delay={0.05}>
+          <h2 className="h-section mt-4 max-w-2xl">Um processo claro do primeiro contato à entrega final.</h2>
+        </FadeIn>
+
+        <ol className="mt-12 grid grid-cols-1 gap-px overflow-hidden rounded-2xl border hairline bg-hairline sm:grid-cols-2 lg:grid-cols-4">
+          {STEPS.map((s, i) => (
+            <FadeIn key={s.t} delay={i * 0.02}>
+              <li className="h-full bg-background p-6">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-xs text-muted-foreground">Etapa {String(i + 1).padStart(2, "0")}</span>
+                  <span className="h-px w-8 bg-foreground/20" />
+                </div>
+                <h3 className="mt-5 text-base font-medium tracking-tight">{s.t}</h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{s.d}</p>
+              </li>
+            </FadeIn>
+          ))}
+        </ol>
+
+        <p className="mt-6 text-xs text-muted-foreground">
+          A prévia funcional não é a versão final. A liberação completa acontece após o pagamento restante.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+/* ---------- Social proof ---------- */
+
+function SocialProof() {
+  const cards = [
+    { who: "Salão atendido", where: "Macaé · RJ", quote: "Estrutura visual em padrão de marca grande, sem complicação na produção." },
+    { who: "Salão atendido", where: "Macaé · RJ", quote: "A página guia a cliente direto para o WhatsApp. Funciona." },
+    { who: "Salão atendido", where: "Macaé · RJ", quote: "Apresentação profissional que combina com o nível do meu trabalho." },
+  ];
+  return (
+    <section className="border-t hairline bg-surface">
+      <div className="mx-auto max-w-6xl px-5 py-20 sm:py-28">
+        <FadeIn><Eyebrow>Quem está com a gente</Eyebrow></FadeIn>
+        <FadeIn delay={0.05}>
+          <h2 className="h-section mt-4 max-w-2xl">Estrutura usada por salões em Macaé.</h2>
+        </FadeIn>
+
+        <div className="mt-12 grid gap-5 sm:grid-cols-3">
+          {cards.map((c, i) => (
+            <FadeIn key={i} delay={i * 0.05}>
+              <figure className="flex h-full flex-col justify-between rounded-2xl border hairline bg-background p-6">
+                <blockquote className="text-sm leading-relaxed">“{c.quote}”</blockquote>
+                <figcaption className="mt-6 border-t hairline pt-4">
+                  <p className="text-sm font-medium">{c.who}</p>
+                  <p className="text-xs text-muted-foreground">{c.where}</p>
+                </figcaption>
+              </figure>
+            </FadeIn>
+          ))}
+        </div>
+
+        <FadeIn delay={0.2}>
+          <div className="mt-12 flex flex-col items-center gap-4 rounded-2xl border hairline bg-background p-6 sm:flex-row sm:gap-6">
+            <img src={founderPhoto} alt="Fundador NEX" className="h-16 w-16 rounded-full object-cover ring-inset-hairline" />
+            <div className="text-center sm:text-left">
+              <p className="text-xs uppercase tracking-widest text-muted-foreground">Atendimento direto</p>
+              <p className="mt-1 text-sm">Estúdio NEX · Páginas premium feitas para salões de Macaé.</p>
+            </div>
+            <div className="sm:ml-auto">
+              <GhostCTA href={waLink("Olá, quero atendimento para meu salão em Macaé.")}>
+                Conversar com a equipe
+              </GhostCTA>
+            </div>
+          </div>
+        </FadeIn>
+      </div>
+    </section>
+  );
+}
+
+/* ---------- Form ---------- */
+
+function LeadForm({ selected, onSelect }: { selected: Plan; onSelect: (id: string) => void }) {
+  const [name, setName] = useState("");
+  const [salon, setSalon] = useState("");
+  const [phone, setPhone] = useState("");
+  const [ig, setIg] = useState("");
+  const [promo, setPromo] = useState("");
+  const [notes, setNotes] = useState("");
+
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const msg =
+      `Olá, quero garantir minha vaga para o plano ${selected.name} do Dia dos Namorados.\n\n` +
+      `Nome: ${name}\n` +
+      `Salão: ${salon}\n` +
+      `WhatsApp: ${phone}\n` +
+      (ig ? `Instagram: ${ig}\n` : "") +
+      (promo ? `Promoções desejadas: ${promo}\n` : "") +
+      (notes ? `Observações: ${notes}\n` : "") +
+      `\nJá li que as fotos do salão devem ser enviadas pelo WhatsApp.`;
+    window.open(waLink(msg), "_blank", "noopener");
+  };
+
+  const inputCls =
+    "w-full rounded-xl border hairline bg-background px-4 py-3.5 text-sm placeholder:text-muted-foreground/70 focus:border-foreground focus:outline-none";
+
+  return (
+    <section id="formulario" className="border-t hairline bg-background">
+      <div className="mx-auto max-w-6xl px-5 py-20 sm:py-28">
+        <div className="grid gap-12 lg:grid-cols-[1fr_1.1fr] lg:items-start">
+          <FadeIn>
+            <div>
+              <Eyebrow>Reservar atendimento</Eyebrow>
+              <h2 className="h-section mt-4">Informações essenciais. Sem fricção.</h2>
+              <p className="mt-5 max-w-md text-sm text-muted-foreground leading-relaxed">
+                O envio correto das informações acelera sua produção. As fotos do salão devem ser enviadas diretamente pelo WhatsApp após o contato.
+              </p>
+              <ul className="mt-8 space-y-3 text-xs text-muted-foreground">
+                <li>· Atendimento iniciado após confirmação do formulário e do sinal.</li>
+                <li>· Vagas reservadas por ordem de pagamento.</li>
+                <li>· Resposta em horário comercial.</li>
+              </ul>
+            </div>
+          </FadeIn>
+
+          <FadeIn delay={0.1}>
+            <form onSubmit={submit} className="rounded-2xl border hairline bg-surface p-6 sm:p-8">
+              <div className="grid gap-4">
+                <div>
+                  <label className="mb-1.5 block text-[11px] uppercase tracking-widest text-muted-foreground">Plano</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {PLANS.map((p) => (
+                      <button
+                        type="button"
+                        key={p.id}
+                        onClick={() => onSelect(p.id)}
+                        className={`rounded-xl px-3 py-3 text-xs font-medium transition-colors ${
+                          selected.id === p.id
+                            ? "bg-foreground text-background"
+                            : "bg-background text-foreground ring-inset-hairline hover:bg-accent"
+                        }`}
+                      >
+                        {p.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-[11px] uppercase tracking-widest text-muted-foreground">Nome *</label>
+                  <input className={inputCls} required value={name} onChange={(e) => setName(e.target.value)} maxLength={80} placeholder="Seu nome" />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-[11px] uppercase tracking-widest text-muted-foreground">Nome do salão *</label>
+                  <input className={inputCls} required value={salon} onChange={(e) => setSalon(e.target.value)} maxLength={80} placeholder="Salão" />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-[11px] uppercase tracking-widest text-muted-foreground">WhatsApp *</label>
+                  <input className={inputCls} required value={phone} onChange={(e) => setPhone(e.target.value)} maxLength={20} placeholder="(22) 9..." inputMode="tel" />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-[11px] uppercase tracking-widest text-muted-foreground">Instagram (opcional)</label>
+                  <input className={inputCls} value={ig} onChange={(e) => setIg(e.target.value)} maxLength={50} placeholder="@seusalao" />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-[11px] uppercase tracking-widest text-muted-foreground">Promoções desejadas (opcional)</label>
+                  <input className={inputCls} value={promo} onChange={(e) => setPromo(e.target.value)} maxLength={120} placeholder="Combo Dia dos Namorados..." />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-[11px] uppercase tracking-widest text-muted-foreground">Observações (opcional)</label>
+                  <textarea className={inputCls + " min-h-[90px] resize-none"} value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={400} placeholder="Algo importante?" />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="mt-6 w-full rounded-full bg-foreground px-6 py-4 text-sm font-medium text-background hover:bg-foreground/90 active:scale-[0.98]"
+              >
+                Enviar e abrir WhatsApp →
+              </button>
+              <p className="mt-3 text-center text-[11px] text-muted-foreground">
+                As fotos do salão devem ser enviadas pelo WhatsApp.
+              </p>
+            </form>
+          </FadeIn>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ---------- Urgency ---------- */
+
+function Urgency() {
+  return (
+    <section className="border-t hairline grad-dark text-white">
+      <div className="mx-auto max-w-6xl px-5 py-20 sm:py-28">
+        <FadeIn>
+          <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.22em] text-white/60">
+            <span className="h-px w-6 bg-white/40" />
+            Atenção
+          </div>
+        </FadeIn>
+        <FadeIn delay={0.05}>
+          <h2 className="h-section mt-4 max-w-3xl text-white">
+            Poucas vagas disponíveis antes do <span className="italic font-normal text-white/70">Dia dos Namorados</span>.
+          </h2>
+        </FadeIn>
+        <FadeIn delay={0.1}>
+          <p className="mt-5 max-w-xl text-white/70">
+            Atendimento limitado para salões em Macaé. Alta procura nesta semana. A reserva é por ordem de pagamento do sinal.
+          </p>
+        </FadeIn>
+        <FadeIn delay={0.15}>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <a
+              href="#planos"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-7 py-4 text-sm font-medium text-foreground hover:bg-white/90"
+            >
+              Garantir minha vaga →
+            </a>
+            <a
+              href={waLink("Olá, quero garantir minha vaga antes do Dia dos Namorados.")}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-white/25 px-7 py-4 text-sm font-medium text-white hover:border-white/60"
+            >
+              Falar agora no WhatsApp
+            </a>
+          </div>
+        </FadeIn>
+      </div>
+    </section>
+  );
+}
+
+/* ---------- FAQ ---------- */
+
+const FAQ = [
+  { q: "Qual o prazo de entrega?", a: "A prévia funcional é enviada em até 7 dias após confirmação do formulário e do sinal. A versão final é liberada após a aprovação e o pagamento restante." },
+  { q: "Como funciona o pagamento?", a: "Você paga o sinal via PIX (Mercado Pago) para reservar sua vaga. O valor do sinal é descontado do valor total. O restante é pago após aprovação da prévia." },
+  { q: "Posso personalizar a página?", a: "Sim. Cada plano inclui um número de alterações após o envio da prévia. Plus permite até 3 e Avançado até 5." },
+  { q: "Como envio as fotos do meu salão?", a: "Todas as fotos e materiais devem ser enviados diretamente pelo WhatsApp, junto com o comprovante do sinal." },
+  { q: "Tem suporte depois da entrega?", a: "Sim, suporte via WhatsApp para dúvidas e ajustes dentro do limite do plano contratado." },
+  { q: "E se eu já enviei o comprovante?", a: "Seu atendimento entra na fila assim que confirmamos o pagamento. Você recebe atualização pelo WhatsApp." },
+  { q: "Quando a produção começa?", a: "A produção começa após a confirmação do formulário e do sinal." },
+  { q: "A prévia já é a versão final?", a: "Não. A prévia é uma versão funcional para sua aprovação. A versão final é liberada após o pagamento restante." },
+];
+
+function Faq() {
+  return (
+    <section className="border-t hairline bg-background">
+      <div className="mx-auto max-w-3xl px-5 py-20 sm:py-28">
+        <FadeIn><Eyebrow>Perguntas frequentes</Eyebrow></FadeIn>
+        <FadeIn delay={0.05}>
+          <h2 className="h-section mt-4">Tudo claro antes de começar.</h2>
+        </FadeIn>
+        <div className="mt-10 divide-y divide-[var(--hairline)] border-y hairline">
+          {FAQ.map((f, i) => (
+            <details key={i} className="group py-5">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-medium">
+                {f.q}
+                <span className="text-muted-foreground transition-transform group-open:rotate-45">+</span>
+              </summary>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{f.a}</p>
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ---------- Final CTA + Footer ---------- */
+
+function FinalCta() {
+  return (
+    <section className="border-t hairline bg-background">
+      <div className="mx-auto max-w-4xl px-5 py-24 text-center sm:py-32">
+        <FadeIn><Eyebrow>Próximo passo</Eyebrow></FadeIn>
+        <FadeIn delay={0.05}>
+          <h2 className="h-display mt-5">
+            Garanta sua vaga <span className="italic font-normal text-muted-foreground">antes que acabe.</span>
+          </h2>
+        </FadeIn>
+        <FadeIn delay={0.1}>
+          <p className="mx-auto mt-6 max-w-md text-muted-foreground">
+            Pagamentos confirmados entram na fila por ordem de chegada. Atendimento exclusivo para salões em Macaé.
+          </p>
+        </FadeIn>
+        <FadeIn delay={0.15}>
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <PrimaryCTA href="#planos">Escolher meu plano</PrimaryCTA>
+            <GhostCTA href="#pagamento">Ver dados do PIX</GhostCTA>
+          </div>
+        </FadeIn>
+      </div>
+    </section>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="border-t hairline bg-surface">
+      <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-6 px-5 py-10 sm:flex-row sm:items-center">
+        <div className="flex items-center gap-2">
+          <span className="grid h-7 w-7 place-items-center rounded-md bg-foreground text-background text-[11px] font-semibold">N</span>
+          <p className="text-sm">NEX · Páginas premium para salões em Macaé</p>
+        </div>
+        <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} NEX. Atendimento via WhatsApp 22 97400-5878.</p>
+      </div>
+    </footer>
+  );
+}
+
+/* ---------- Sticky / Floating CTAs ---------- */
+
+function FloatingWhats() {
+  return (
+    <a
+      href={waLink("Olá, quero atendimento para meu salão em Macaé.")}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Falar no WhatsApp"
+      className="fixed bottom-24 right-4 z-40 grid h-14 w-14 place-items-center rounded-full bg-foreground text-background shadow-lg shadow-black/20 transition-transform hover:scale-105 sm:bottom-6"
+    >
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden>
+        <path d="M20.5 3.5A11.9 11.9 0 0 0 12 0C5.4 0 .1 5.3.1 11.9c0 2.1.6 4.1 1.6 5.9L0 24l6.4-1.7a11.9 11.9 0 0 0 5.6 1.4h.01c6.6 0 11.9-5.3 11.9-11.9 0-3.2-1.2-6.2-3.4-8.3zM12 21.3h-.01a9.4 9.4 0 0 1-4.8-1.3l-.34-.2-3.8 1 1-3.7-.22-.38a9.4 9.4 0 1 1 8.17 4.58zm5.4-7.05c-.3-.15-1.74-.86-2-.95-.27-.1-.46-.15-.65.15s-.74.95-.9 1.14c-.17.2-.34.22-.63.08-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.47-1.74-1.64-2.04-.17-.3-.02-.46.13-.6.13-.13.3-.34.45-.5.15-.18.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.65-1.57-.9-2.15-.23-.55-.47-.48-.65-.49h-.55c-.2 0-.5.07-.77.37-.27.3-1.02 1-1.02 2.43s1.05 2.83 1.2 3.02c.15.2 2.07 3.17 5.02 4.45.7.3 1.25.48 1.68.62.7.22 1.34.2 1.85.12.56-.08 1.74-.71 1.98-1.4.24-.69.24-1.27.17-1.4-.07-.13-.27-.2-.57-.35z" />
+      </svg>
+    </a>
+  );
+}
+
+function StickyMobileBar() {
+  return (
+    <div className="fixed inset-x-0 bottom-0 z-30 border-t hairline bg-background/90 backdrop-blur-xl sm:hidden">
+      <div className="grid grid-cols-2 gap-2 p-3">
+        <a
+          href="#planos"
+          className="inline-flex items-center justify-center rounded-full bg-foreground px-4 py-3 text-xs font-medium text-background"
+        >
+          Garantir vaga
+        </a>
+        <a
+          href={waLink("Olá, quero atendimento para meu salão em Macaé.")}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center justify-center rounded-full border hairline px-4 py-3 text-xs font-medium"
+        >
+          WhatsApp
+        </a>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Page ---------- */
+
+function LandingPage() {
+  const [selectedId, setSelectedId] = useState<string>("plus");
+  const selected = PLANS.find((p) => p.id === selectedId) ?? PLANS[1];
+
+  const onChoose = (p: Plan) => {
+    setSelectedId(p.id);
+    const el = document.getElementById("pagamento");
+    el?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  return (
+    <main className="min-h-screen bg-background text-foreground pb-16 sm:pb-0">
+      <Nav />
+      <Hero />
+      <Benefits />
+      <Mockups />
+      <Plans onChoose={onChoose} />
+      <Payment selected={selected} />
+      <Timeline />
+      <SocialProof />
+      <LeadForm selected={selected} onSelect={setSelectedId} />
+      <Urgency />
+      <Faq />
+      <FinalCta />
+      <Footer />
+      <FloatingWhats />
+      <StickyMobileBar />
+    </main>
   );
 }
