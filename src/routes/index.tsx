@@ -1141,12 +1141,12 @@ function StickyMobileBar() {
 
 function LandingPage() {
   const [selectedId, setSelectedId] = useState<string>("plus");
+  const [paymentOpen, setPaymentOpen] = useState(false);
   const selected = PLANS.find((p) => p.id === selectedId) ?? PLANS[1];
 
   const onChoose = (p: Plan) => {
     setSelectedId(p.id);
-    const el = document.getElementById("pagamento");
-    el?.scrollIntoView({ behavior: "smooth", block: "start" });
+    setPaymentOpen(true);
   };
 
   return (
@@ -1156,16 +1156,21 @@ function LandingPage() {
       <Benefits />
       <Mockups />
       <Plans onChoose={onChoose} />
-      <Payment selected={selected} />
       <Timeline />
       <SocialProof />
       <LeadForm selected={selected} onSelect={setSelectedId} />
       <Urgency />
       <Faq />
-      <FinalCta />
+      <FinalCta onChoose={() => setPaymentOpen(true)} />
       <Footer />
       <FloatingWhats />
       <StickyMobileBar />
+      <AnimatePresence>
+        {paymentOpen && (
+          <PaymentFlow selected={selected} onClose={() => setPaymentOpen(false)} />
+        )}
+      </AnimatePresence>
     </main>
   );
 }
+
