@@ -404,115 +404,7 @@ function Plans({ onChoose }: { onChoose: (p: Plan) => void }) {
   );
 }
 
-/* ---------- Payment ---------- */
-
-function Payment({ selected }: { selected: Plan }) {
-  const [copied, setCopied] = useState(false);
-  const copyKey = async () => {
-    try {
-      await navigator.clipboard.writeText(PIX_KEY);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1800);
-    } catch {/* noop */}
-  };
-
-  const pixPayload = useMemo(
-    () =>
-      `PIX MERCADO PAGO\nChave: ${PIX_KEY}\nTitular: ${PIX_HOLDER}\nPlano: ${selected.name} — Sinal ${selected.deposit}`,
-    [selected],
-  );
-
-  return (
-    <section id="pagamento" className="border-t hairline bg-surface">
-      <div className="mx-auto max-w-6xl px-5 py-20 sm:py-28">
-        <FadeIn><Eyebrow>Pagamento do sinal</Eyebrow></FadeIn>
-        <FadeIn delay={0.05}>
-          <h2 className="h-section mt-4 max-w-2xl">PIX seguro via Mercado Pago.</h2>
-        </FadeIn>
-        <FadeIn delay={0.1}>
-          <p className="mt-4 max-w-xl text-sm text-muted-foreground">
-            O sinal reserva sua vaga na fila de produção e é descontado do valor total. Atendimento confirmado após envio do comprovante.
-          </p>
-        </FadeIn>
-
-        <div className="mt-12 grid gap-5 lg:grid-cols-[1.1fr_1fr]">
-          <FadeIn>
-            <div className="rounded-2xl border hairline bg-background p-6 sm:p-8">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <img src={mercadoLogo} alt="Mercado Pago" className="h-9 w-9 rounded-lg bg-foreground object-contain p-1" />
-                  <div>
-                    <p className="text-xs uppercase tracking-widest text-muted-foreground">Instituição</p>
-                    <p className="text-sm font-medium">{PIX_BANK}</p>
-                  </div>
-                </div>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1 text-[10px] uppercase tracking-widest text-muted-foreground ring-inset-hairline">
-                  <LockIcon /> Seguro
-                </span>
-              </div>
-
-              <div className="mt-6 grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Titular</p>
-                  <p className="mt-1 text-sm font-medium">{PIX_HOLDER}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Plano selecionado</p>
-                  <p className="mt-1 text-sm font-medium">{selected.name} · Sinal {selected.deposit}</p>
-                </div>
-              </div>
-
-              <div className="mt-6 rounded-xl bg-surface p-4 ring-inset-hairline">
-                <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Chave PIX</p>
-                <div className="mt-1.5 flex items-center justify-between gap-3">
-                  <code className="truncate text-sm font-medium">{PIX_KEY}</code>
-                  <button
-                    onClick={copyKey}
-                    className="shrink-0 rounded-full bg-foreground px-3 py-1.5 text-[11px] font-medium text-background hover:bg-foreground/90"
-                  >
-                    {copied ? "Copiado" : "Copiar"}
-                  </button>
-                </div>
-              </div>
-
-              <ul className="mt-6 space-y-2 text-xs text-muted-foreground">
-                <li>· O sinal é descontado do valor total do projeto.</li>
-                <li>· Após a aprovação da prévia funcional, o restante libera a versão final.</li>
-                <li>· Atendimento confirmado após envio do comprovante pelo WhatsApp.</li>
-              </ul>
-
-              <div className="mt-6">
-                <PrimaryCTA
-                  href={waLink(
-                    `Olá, já enviei o sinal do plano ${selected.name} (${selected.deposit}) e quero iniciar minha página.`,
-                  )}
-                  full
-                >
-                  Enviar comprovante no WhatsApp
-                </PrimaryCTA>
-              </div>
-            </div>
-          </FadeIn>
-
-          <FadeIn delay={0.05}>
-            <div className="flex h-full flex-col items-center justify-center rounded-2xl border hairline bg-background p-6 sm:p-8 text-center">
-              <p className="eyebrow">QR Code PIX</p>
-              <div className="mt-5 rounded-xl bg-white p-4 ring-inset-hairline">
-                <QRCodeSVG value={pixPayload} size={176} level="M" />
-              </div>
-              <p className="mt-5 max-w-[26ch] text-xs text-muted-foreground">
-                Aponte a câmera do seu banco. A chave e os dados aparecem automaticamente.
-              </p>
-              <div className="mt-4 text-[11px] font-mono text-muted-foreground">
-                {PIX_HOLDER} · {PIX_BANK}
-              </div>
-            </div>
-          </FadeIn>
-        </div>
-      </div>
-    </section>
-  );
-}
+/* ---------- Payment Flow (Modal Funnel) ---------- */
 
 function LockIcon() {
   return (
@@ -522,6 +414,357 @@ function LockIcon() {
     </svg>
   );
 }
+
+function CheckIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" aria-hidden>
+      <path d="M5 12l5 5L20 7" />
+    </svg>
+  );
+}
+
+const PAYMENT_WINDOW_SECONDS = 15 * 60;
+
+function PaymentFlow({
+  selected,
+  onClose,
+}: {
+  selected: Plan;
+  onClose: () => void;
+}) {
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [copied, setCopied] = useState(false);
+  const [secondsLeft, setSecondsLeft] = useState(PAYMENT_WINDOW_SECONDS);
+  const [expired, setExpired] = useState(false);
+
+  const pixPayload = useMemo(
+    () =>
+      `PIX MERCADO PAGO | Chave: ${PIX_KEY} | Titular: ${PIX_HOLDER} | Plano: ${selected.name} - Sinal ${selected.deposit}`,
+    [selected],
+  );
+
+  // Lock body scroll
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, []);
+
+  // ESC to close
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  // Countdown on step 2
+  useEffect(() => {
+    if (step !== 2 || expired) return;
+    const t = setInterval(() => {
+      setSecondsLeft((s) => {
+        if (s <= 1) {
+          setExpired(true);
+          clearInterval(t);
+          return 0;
+        }
+        return s - 1;
+      });
+    }, 1000);
+    return () => clearInterval(t);
+  }, [step, expired]);
+
+  const mm = String(Math.floor(secondsLeft / 60)).padStart(2, "0");
+  const ss = String(secondsLeft % 60).padStart(2, "0");
+  const pct = (secondsLeft / PAYMENT_WINDOW_SECONDS) * 100;
+
+  const copyKey = async () => {
+    try {
+      await navigator.clipboard.writeText(PIX_KEY);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      /* noop */
+    }
+  };
+
+  const restart = () => {
+    setExpired(false);
+    setSecondsLeft(PAYMENT_WINDOW_SECONDS);
+    setStep(2);
+  };
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center" role="dialog" aria-modal="true">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+      />
+      <motion.div
+        initial={{ y: 40, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: 40, opacity: 0 }}
+        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+        className="relative z-10 w-full max-w-lg overflow-hidden rounded-t-3xl border hairline bg-background sm:rounded-3xl"
+      >
+        {/* Header / Steps */}
+        <div className="flex items-center justify-between border-b hairline px-5 py-4">
+          <div className="flex items-center gap-2">
+            <span className="grid h-7 w-7 place-items-center rounded-md bg-foreground text-background text-[11px] font-semibold">N</span>
+            <div>
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Reserva segura</p>
+              <p className="text-sm font-medium">Plano {selected.name} · Sinal {selected.deposit}</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            aria-label="Fechar"
+            className="grid h-9 w-9 place-items-center rounded-full border hairline text-muted-foreground hover:text-foreground"
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Step indicator */}
+        <div className="flex items-center gap-2 px-5 pt-4">
+          {[1, 2, 3].map((n) => (
+            <div key={n} className="flex flex-1 items-center gap-2">
+              <span
+                className={`grid h-6 w-6 place-items-center rounded-full text-[10px] font-semibold ${
+                  step >= (n as 1 | 2 | 3)
+                    ? "bg-foreground text-background"
+                    : "bg-surface text-muted-foreground ring-inset-hairline"
+                }`}
+              >
+                {step > n ? <CheckIcon /> : n}
+              </span>
+              <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                {n === 1 ? "Confirmar" : n === 2 ? "Pagar PIX" : "Comprovante"}
+              </span>
+              {n < 3 && <span className="ml-1 h-px flex-1 bg-hairline" />}
+            </div>
+          ))}
+        </div>
+
+        <div className="max-h-[75vh] overflow-y-auto px-5 py-6 sm:px-7 sm:py-7">
+          {/* STEP 1 */}
+          {step === 1 && (
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+              <p className="eyebrow">Etapa 01 · Confirmação</p>
+              <h3 className="mt-3 text-2xl font-semibold tracking-tight">Confirme sua reserva.</h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Você está prestes a reservar uma das últimas vagas para o Dia dos Namorados em Macaé.
+              </p>
+
+              <div className="mt-6 rounded-2xl bg-surface p-5 ring-inset-hairline">
+                <div className="flex items-baseline justify-between">
+                  <span className="text-xs uppercase tracking-widest text-muted-foreground">Plano</span>
+                  <span className="text-sm font-medium">{selected.name}</span>
+                </div>
+                <div className="mt-3 flex items-baseline justify-between">
+                  <span className="text-xs uppercase tracking-widest text-muted-foreground">Valor total</span>
+                  <span className="text-sm font-medium">{selected.price}</span>
+                </div>
+                <div className="mt-3 flex items-baseline justify-between border-t hairline pt-3">
+                  <span className="text-xs uppercase tracking-widest text-muted-foreground">Sinal hoje</span>
+                  <span className="text-2xl font-semibold tracking-tight">{selected.deposit}</span>
+                </div>
+                <p className="mt-2 text-[11px] text-muted-foreground">Descontado do valor total na entrega final.</p>
+              </div>
+
+              <ul className="mt-5 space-y-2 text-xs text-muted-foreground">
+                <li className="flex items-center gap-2"><LockIcon /> Pagamento processado via Mercado Pago</li>
+                <li className="flex items-center gap-2"><LockIcon /> Reserva confirmada por ordem de pagamento</li>
+                <li className="flex items-center gap-2"><LockIcon /> Sem cobrança recorrente</li>
+              </ul>
+
+              <div className="mt-6 flex flex-col gap-2">
+                <button
+                  onClick={() => setStep(2)}
+                  className="w-full rounded-full bg-foreground px-6 py-4 text-sm font-semibold text-background transition-transform active:scale-[0.98]"
+                >
+                  Gerar PIX agora →
+                </button>
+                <button
+                  onClick={onClose}
+                  className="w-full rounded-full border hairline px-6 py-3 text-xs font-medium text-muted-foreground hover:text-foreground"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* STEP 2 */}
+          {step === 2 && (
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+              <div className="flex items-center justify-between">
+                <p className="eyebrow">Etapa 02 · PIX</p>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-surface px-2.5 py-1 text-[10px] uppercase tracking-widest text-muted-foreground ring-inset-hairline">
+                  <LockIcon /> Mercado Pago
+                </span>
+              </div>
+
+              {!expired ? (
+                <>
+                  {/* Timer */}
+                  <div className="mt-4 rounded-2xl border hairline bg-surface p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Reserva expira em</p>
+                        <p className="mt-1 font-mono text-3xl font-semibold tabular-nums tracking-tight">
+                          {mm}:{ss}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Sinal</p>
+                        <p className="mt-1 text-2xl font-semibold tracking-tight">{selected.deposit}</p>
+                      </div>
+                    </div>
+                    <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-hairline">
+                      <div
+                        className="h-full bg-foreground transition-all"
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                    <p className="mt-2 text-[11px] text-muted-foreground">
+                      Após esse tempo a vaga volta para a fila pública.
+                    </p>
+                  </div>
+
+                  {/* PIX COPY (ÊNFASE) */}
+                  <div className="mt-5">
+                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground">PIX copia e cola</p>
+                    <div className="mt-2 rounded-2xl border-2 border-foreground bg-background p-4">
+                      <code className="block break-all text-xs font-medium leading-relaxed">{PIX_KEY}</code>
+                      <button
+                        onClick={copyKey}
+                        className="mt-3 w-full rounded-full bg-foreground px-5 py-3.5 text-sm font-semibold text-background transition-transform active:scale-[0.98]"
+                      >
+                        {copied ? "✓ Chave copiada" : "Copiar chave PIX"}
+                      </button>
+                    </div>
+                    <p className="mt-2 text-[11px] text-muted-foreground">
+                      Cole no app do seu banco · Titular {PIX_HOLDER} · {PIX_BANK}
+                    </p>
+                  </div>
+
+                  {/* QR alternative */}
+                  <details className="mt-4 rounded-xl border hairline bg-surface px-4 py-3 text-sm">
+                    <summary className="cursor-pointer list-none text-xs font-medium text-muted-foreground">
+                      Preferir QR Code →
+                    </summary>
+                    <div className="mt-4 flex flex-col items-center">
+                      <div className="rounded-xl bg-white p-3">
+                        <QRCodeSVG value={pixPayload} size={148} level="M" />
+                      </div>
+                      <p className="mt-3 text-[11px] text-muted-foreground">
+                        Aponte a câmera do seu banco.
+                      </p>
+                    </div>
+                  </details>
+
+                  <div className="mt-6 flex flex-col gap-2">
+                    <button
+                      onClick={() => setStep(3)}
+                      className="w-full rounded-full bg-foreground px-6 py-4 text-sm font-semibold text-background active:scale-[0.98]"
+                    >
+                      Já paguei — enviar comprovante →
+                    </button>
+                    <button
+                      onClick={onClose}
+                      className="w-full rounded-full border hairline px-6 py-3 text-xs font-medium text-muted-foreground hover:text-foreground"
+                    >
+                      Cancelar pagamento
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="mt-6 text-center">
+                  <p className="text-xs uppercase tracking-widest text-muted-foreground">Tempo esgotado</p>
+                  <h4 className="mt-2 text-xl font-semibold tracking-tight">Sua reserva expirou.</h4>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Ainda há vagas — gere um novo PIX para continuar.
+                  </p>
+                  <div className="mt-6 flex flex-col gap-2">
+                    <button
+                      onClick={restart}
+                      className="w-full rounded-full bg-foreground px-6 py-4 text-sm font-semibold text-background active:scale-[0.98]"
+                    >
+                      Gerar novo PIX
+                    </button>
+                    <button
+                      onClick={onClose}
+                      className="w-full rounded-full border hairline px-6 py-3 text-xs font-medium text-muted-foreground hover:text-foreground"
+                    >
+                      Fechar
+                    </button>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {/* STEP 3 */}
+          {step === 3 && (
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+              <p className="eyebrow">Etapa 03 · Comprovante</p>
+              <h3 className="mt-3 text-2xl font-semibold tracking-tight">Envie o comprovante.</h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Confirmamos sua vaga em minutos pelo WhatsApp e damos início à produção.
+              </p>
+
+              <div className="mt-5 rounded-2xl bg-surface p-5 ring-inset-hairline">
+                <p className="text-xs uppercase tracking-widest text-muted-foreground">O que enviar</p>
+                <ul className="mt-3 space-y-2 text-sm">
+                  <li className="flex items-start gap-2"><span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-foreground" /> Comprovante PIX ({selected.deposit})</li>
+                  <li className="flex items-start gap-2"><span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-foreground" /> Fotos do seu salão</li>
+                  <li className="flex items-start gap-2"><span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-foreground" /> Logo e cores (se tiver)</li>
+                  <li className="flex items-start gap-2"><span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-foreground" /> Promoções do Dia dos Namorados</li>
+                </ul>
+              </div>
+
+              <div className="mt-6 flex flex-col gap-2">
+                <a
+                  href={waLink(
+                    `Olá! Acabei de pagar o sinal de ${selected.deposit} do plano ${selected.name}. Vou enviar o comprovante e o material do salão.`,
+                  )}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-6 py-4 text-sm font-semibold text-background active:scale-[0.98]"
+                >
+                  Abrir WhatsApp →
+                </a>
+                <button
+                  onClick={onClose}
+                  className="w-full rounded-full border hairline px-6 py-3 text-xs font-medium text-muted-foreground hover:text-foreground"
+                >
+                  Fechar
+                </button>
+              </div>
+
+              <p className="mt-4 text-center text-[11px] text-muted-foreground">
+                Atendimento direto · 22 97400-5878
+              </p>
+            </motion.div>
+          )}
+        </div>
+
+        {/* Trust footer */}
+        <div className="border-t hairline bg-surface px-5 py-3 text-center text-[10px] uppercase tracking-widest text-muted-foreground">
+          <span className="inline-flex items-center gap-1.5"><LockIcon /> Conexão segura · Dados protegidos</span>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
 
 /* ---------- Timeline ---------- */
 
