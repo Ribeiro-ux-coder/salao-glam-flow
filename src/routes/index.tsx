@@ -5,7 +5,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { QRCodeSVG } from "qrcode.react";
 import salonHero from "@/assets/salon-hero.jpg";
 import mockupPhone from "@/assets/mockup-phone.jpg";
-import mercadoLogo from "@/assets/mercadopago-logo.png";
+
 import founderPhoto from "@/assets/founder.png";
 
 export const Route = createFileRoute("/")({
