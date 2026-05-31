@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState, type ReactNode } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+
 import { QRCodeSVG } from "qrcode.react";
 import salonHero from "@/assets/salon-hero.jpg";
 import mockupPhone from "@/assets/mockup-phone.jpg";
