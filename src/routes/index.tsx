@@ -1056,7 +1056,7 @@ function Faq() {
 
 /* ---------- Final CTA + Footer ---------- */
 
-function FinalCta() {
+function FinalCta({ onChoose }: { onChoose: () => void }) {
   return (
     <section className="border-t hairline bg-background">
       <div className="mx-auto max-w-4xl px-5 py-24 text-center sm:py-32">
@@ -1073,8 +1073,13 @@ function FinalCta() {
         </FadeIn>
         <FadeIn delay={0.15}>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <PrimaryCTA href="#planos">Escolher meu plano</PrimaryCTA>
-            <GhostCTA href="#pagamento">Ver dados do PIX</GhostCTA>
+            <button
+              onClick={onChoose}
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-foreground px-7 py-4 text-sm font-medium text-background hover:bg-foreground/90 active:scale-[0.98]"
+            >
+              Reservar minha vaga agora →
+            </button>
+            <GhostCTA href="#planos">Ver planos</GhostCTA>
           </div>
         </FadeIn>
       </div>
