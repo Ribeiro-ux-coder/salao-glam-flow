@@ -104,6 +104,46 @@ function waLink(message: string) {
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 }
 
+const RESERVE_EVENT = "nex0s:open-reservation";
+
+function triggerReservation(e?: { preventDefault?: () => void }) {
+  e?.preventDefault?.();
+  if (typeof window === "undefined") return;
+  const el = document.getElementById("planos");
+  if (el) {
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.setTimeout(() => window.dispatchEvent(new Event(RESERVE_EVENT)), 500);
+  } else {
+    window.dispatchEvent(new Event(RESERVE_EVENT));
+  }
+}
+
+function ReserveButton({
+  children,
+  variant = "primary",
+  full = false,
+  className = "",
+}: {
+  children: ReactNode;
+  variant?: "primary" | "ghost" | "white" | "outline-white";
+  full?: boolean;
+  className?: string;
+}) {
+  const base = `group inline-flex ${full ? "w-full" : ""} items-center justify-center gap-2 rounded-full px-7 py-4 text-sm font-medium transition-all active:scale-[0.98]`;
+  const styles = {
+    primary: "bg-foreground text-background hover:bg-foreground/90",
+    ghost: "border border-foreground/15 bg-background text-foreground hover:border-foreground/40",
+    white: "bg-white text-foreground hover:bg-white/90",
+    "outline-white": "border border-white/25 text-white hover:border-white/60",
+  }[variant];
+  return (
+    <button type="button" onClick={() => triggerReservation()} className={`${base} ${styles} ${className}`}>
+      {children}
+      <span aria-hidden className="inline-block transition-transform group-hover:translate-x-0.5">→</span>
+    </button>
+  );
+}
+
 /* ---------- PIX BR Code (EMV) ---------- */
 
 const PIX_MERCHANT_NAME = "NICOLE VERA CRUZ";
