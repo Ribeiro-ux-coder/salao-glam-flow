@@ -142,7 +142,7 @@ function ReserveButton({
 
 /* ---------- PIX BR Code (EMV) ---------- */
 
-const PIX_MERCHANT_NAME = "NICOLE VERA CRUZ";
+const PIX_MERCHANT_NAME = "NICOLY VERA CRUZ DA CONCEICAO";
 const PIX_MERCHANT_CITY = "MACAE";
 
 function emv(id: string, value: string) {
