@@ -1279,13 +1279,7 @@ function FinalCta({ onChoose }: { onChoose: () => void }) {
         </FadeIn>
         <FadeIn delay={0.15}>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <button
-              onClick={onChoose}
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-foreground px-7 py-4 text-sm font-medium text-background hover:bg-foreground/90 active:scale-[0.98]"
-            >
-              Reservar minha vaga agora →
-            </button>
-            <GhostCTA href="#planos">Ver planos</GhostCTA>
+            <ReserveButton variant="primary">Reservar minha vaga agora</ReserveButton>
           </div>
         </FadeIn>
       </div>
@@ -1299,9 +1293,9 @@ function Footer() {
       <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-6 px-5 py-10 sm:flex-row sm:items-center">
         <div className="flex items-center gap-2">
           <span className="grid h-7 w-7 place-items-center rounded-md bg-foreground text-background text-[11px] font-semibold">N</span>
-          <p className="text-sm">NEX · Páginas premium para salões em Macaé</p>
+          <p className="text-sm">Nex0s · Páginas premium para salões em Macaé</p>
         </div>
-        <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} NEX. Atendimento via WhatsApp 22 97400-5878.</p>
+        <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} Nex0s. Atendimento via WhatsApp 22 97400-5878.</p>
       </div>
     </footer>
   );
