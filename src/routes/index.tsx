@@ -129,7 +129,7 @@ function ReserveButton({
   const styles = {
     primary: "bg-foreground text-background hover:bg-foreground/90",
     ghost: "border border-foreground/15 bg-background text-foreground hover:border-foreground/40",
-    white: "bg-white text-foreground hover:bg-white/90",
+    white: "text-neutral-950 bg-slate-50",
     "outline-white": "border border-white/25 text-white hover:border-white/60",
   }[variant];
   return (
