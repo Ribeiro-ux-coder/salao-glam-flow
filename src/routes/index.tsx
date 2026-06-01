@@ -1214,20 +1214,8 @@ function Urgency() {
         </FadeIn>
         <FadeIn delay={0.15}>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <a
-              href="#planos"
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-7 py-4 text-sm font-medium text-foreground hover:bg-white/90"
-            >
-              Garantir minha vaga →
-            </a>
-            <a
-              href={waLink("Olá, quero garantir minha vaga antes do Dia dos Namorados.")}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 rounded-full border border-white/25 px-7 py-4 text-sm font-medium text-white hover:border-white/60"
-            >
-              Falar agora no WhatsApp
-            </a>
+            <ReserveButton variant="white">Garantir minha vaga</ReserveButton>
+            <ReserveButton variant="outline-white">Reservar agora</ReserveButton>
           </div>
         </FadeIn>
       </div>
