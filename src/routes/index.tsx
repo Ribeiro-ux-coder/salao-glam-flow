@@ -471,7 +471,60 @@ function CheckIcon() {
 
 const PAYMENT_WINDOW_SECONDS = 15 * 60;
 
+function Field({
+  label,
+  value,
+  onChange,
+  placeholder,
+  inputMode,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  inputMode?: "text" | "tel" | "email" | "url";
+}) {
+  return (
+    <label className="block">
+      <span className="block text-[11px] font-medium uppercase tracking-widest text-muted-foreground">{label}</span>
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        inputMode={inputMode}
+        className="mt-1.5 w-full rounded-xl border hairline bg-surface px-3.5 py-3 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-foreground"
+      />
+    </label>
+  );
+}
+
+function FieldArea({
+  label,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+}) {
+  return (
+    <label className="block">
+      <span className="block text-[11px] font-medium uppercase tracking-widest text-muted-foreground">{label}</span>
+      <textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        rows={3}
+        className="mt-1.5 w-full resize-none rounded-xl border hairline bg-surface px-3.5 py-3 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-foreground"
+      />
+    </label>
+  );
+}
+
 function PaymentFlow({
+
   selected,
   onClose,
 }: {
