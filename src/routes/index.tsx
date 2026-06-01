@@ -246,16 +246,15 @@ function Nav() {
       <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3.5">
         <a href="#top" className="flex items-center gap-2">
           <span className="grid h-7 w-7 place-items-center rounded-md bg-foreground text-background text-[11px] font-semibold tracking-tight">N</span>
-          <span className="text-sm font-medium tracking-tight">NEX <span className="text-muted-foreground">· Salões</span></span>
+          <span className="text-sm font-medium tracking-tight">Nex0s <span className="text-muted-foreground">· Salões</span></span>
         </a>
-        <a
-          href={waLink("Olá, quero atendimento para meu salão em Macaé.")}
-          target="_blank"
-          rel="noopener noreferrer"
+        <button
+          type="button"
+          onClick={() => triggerReservation()}
           className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-xs font-medium text-background hover:bg-foreground/90"
         >
-          Falar no WhatsApp
-        </a>
+          Reservar minha vaga
+        </button>
       </div>
     </header>
   );
