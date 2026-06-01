@@ -45,6 +45,7 @@ const PLANS = [
     name: "Básico",
     price: "R$ 150",
     deposit: "R$ 50",
+    depositValue: 50,
     featured: false,
     tagline: "Presença rápida e objetiva.",
     items: [
@@ -62,6 +63,7 @@ const PLANS = [
     name: "Plus",
     price: "R$ 320",
     deposit: "R$ 120",
+    depositValue: 120,
     featured: true,
     tagline: "Mais conversão e apresentação premium.",
     items: [
@@ -80,6 +82,7 @@ const PLANS = [
     name: "Avançado",
     price: "R$ 520",
     deposit: "R$ 180",
+    depositValue: 180,
     featured: false,
     tagline: "Máximo nível de apresentação profissional.",
     items: [
@@ -99,6 +102,49 @@ type Plan = (typeof PLANS)[number];
 
 function waLink(message: string) {
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+}
+
+/* ---------- PIX BR Code (EMV) ---------- */
+
+const PIX_MERCHANT_NAME = "NICOLE VERA CRUZ";
+const PIX_MERCHANT_CITY = "MACAE";
+
+function emv(id: string, value: string) {
+  const len = value.length.toString().padStart(2, "0");
+  return `${id}${len}${value}`;
+}
+
+function crc16(payload: string) {
+  let crc = 0xffff;
+  for (let i = 0; i < payload.length; i++) {
+    crc ^= payload.charCodeAt(i) << 8;
+    for (let j = 0; j < 8; j++) {
+      crc = (crc & 0x8000) ? (crc << 1) ^ 0x1021 : crc << 1;
+      crc &= 0xffff;
+    }
+  }
+  return crc.toString(16).toUpperCase().padStart(4, "0");
+}
+
+function buildPixPayload(amount: number, txid = "NEX" + Date.now().toString().slice(-8)) {
+  const gui = emv("00", "br.gov.bcb.pix");
+  const key = emv("01", PIX_KEY);
+  const mai = emv("26", gui + key);
+  const cleanTx = txid.replace(/[^A-Za-z0-9]/g, "").slice(0, 25) || "***";
+  const additional = emv("62", emv("05", cleanTx));
+  const amountStr = amount.toFixed(2);
+  const partial =
+    emv("00", "01") +
+    mai +
+    emv("52", "0000") +
+    emv("53", "986") +
+    emv("54", amountStr) +
+    emv("58", "BR") +
+    emv("59", PIX_MERCHANT_NAME.slice(0, 25)) +
+    emv("60", PIX_MERCHANT_CITY.slice(0, 15)) +
+    additional +
+    "6304";
+  return partial + crc16(partial);
 }
 
 /* ---------- Primitives ---------- */
