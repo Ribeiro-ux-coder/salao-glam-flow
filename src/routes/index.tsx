@@ -1063,15 +1063,13 @@ function SocialProof() {
 
         <FadeIn delay={0.2}>
           <div className="mt-12 flex flex-col items-center gap-4 rounded-2xl border hairline bg-background p-6 sm:flex-row sm:gap-6">
-            <img src={founderPhoto} alt="Fundador NEX" className="h-16 w-16 rounded-full object-cover ring-inset-hairline" />
+            <img src={founderPhoto} alt="Fundador Nex0s" className="h-16 w-16 rounded-full object-cover ring-inset-hairline" />
             <div className="text-center sm:text-left">
               <p className="text-xs uppercase tracking-widest text-muted-foreground">Atendimento direto</p>
-              <p className="mt-1 text-sm">Estúdio NEX · Páginas premium feitas para salões de Macaé.</p>
+              <p className="mt-1 text-sm">Estúdio Nex0s · Páginas premium feitas para salões de Macaé.</p>
             </div>
             <div className="sm:ml-auto">
-              <GhostCTA href={waLink("Olá, quero atendimento para meu salão em Macaé.")}>
-                Conversar com a equipe
-              </GhostCTA>
+              <ReserveButton variant="ghost">Reservar minha vaga</ReserveButton>
             </div>
           </div>
         </FadeIn>
