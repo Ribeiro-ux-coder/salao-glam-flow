@@ -1264,7 +1264,6 @@ function LandingPage() {
       <Plans onChoose={onChoose} />
       <Timeline />
       <SocialProof />
-      <LeadForm selected={selected} onSelect={setSelectedId} />
       <Urgency />
       <Faq />
       <FinalCta onChoose={() => setPaymentOpen(true)} />
