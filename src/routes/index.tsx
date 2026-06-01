@@ -584,11 +584,9 @@ function PaymentFlow({
   const [secondsLeft, setSecondsLeft] = useState(PAYMENT_WINDOW_SECONDS);
   const [expired, setExpired] = useState(false);
 
-  // Real PIX BR Code with the exact amount of the chosen plan
-  const pixPayload = useMemo(
-    () => buildPixPayload(selected.depositValue),
-    [selected],
-  );
+  // Mercado Pago checkout link for the chosen plan
+  const paymentLink = selected.paymentLink;
+
 
   // Persistent form (step 3) — survives accidental close / reload
   const STORAGE_KEY = "nex_lead_form_v1";
