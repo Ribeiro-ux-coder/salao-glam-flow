@@ -11,13 +11,13 @@ import founderPhoto from "@/assets/founder.png";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "NEX — Páginas Premium para Salões de Beleza em Macaé" },
+      { title: "Nex0s — Páginas Premium para Salões de Beleza em Macaé" },
       {
         name: "description",
         content:
           "Página profissional, mobile-first e otimizada para conversão. Mais agendamentos, mais clientes no WhatsApp e mais vendas no Dia dos Namorados. Vagas limitadas para salões em Macaé.",
       },
-      { property: "og:title", content: "NEX — Páginas Premium para Salões em Macaé" },
+      { property: "og:title", content: "Nex0s — Páginas Premium para Salões em Macaé" },
       {
         property: "og:description",
         content:
@@ -102,6 +102,46 @@ type Plan = (typeof PLANS)[number];
 
 function waLink(message: string) {
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+}
+
+const RESERVE_EVENT = "nex0s:open-reservation";
+
+function triggerReservation(e?: { preventDefault?: () => void }) {
+  e?.preventDefault?.();
+  if (typeof window === "undefined") return;
+  const el = document.getElementById("planos");
+  if (el) {
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.setTimeout(() => window.dispatchEvent(new Event(RESERVE_EVENT)), 500);
+  } else {
+    window.dispatchEvent(new Event(RESERVE_EVENT));
+  }
+}
+
+function ReserveButton({
+  children,
+  variant = "primary",
+  full = false,
+  className = "",
+}: {
+  children: ReactNode;
+  variant?: "primary" | "ghost" | "white" | "outline-white";
+  full?: boolean;
+  className?: string;
+}) {
+  const base = `group inline-flex ${full ? "w-full" : ""} items-center justify-center gap-2 rounded-full px-7 py-4 text-sm font-medium transition-all active:scale-[0.98]`;
+  const styles = {
+    primary: "bg-foreground text-background hover:bg-foreground/90",
+    ghost: "border border-foreground/15 bg-background text-foreground hover:border-foreground/40",
+    white: "bg-white text-foreground hover:bg-white/90",
+    "outline-white": "border border-white/25 text-white hover:border-white/60",
+  }[variant];
+  return (
+    <button type="button" onClick={() => triggerReservation()} className={`${base} ${styles} ${className}`}>
+      {children}
+      <span aria-hidden className="inline-block transition-transform group-hover:translate-x-0.5">→</span>
+    </button>
+  );
 }
 
 /* ---------- PIX BR Code (EMV) ---------- */
@@ -206,16 +246,15 @@ function Nav() {
       <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3.5">
         <a href="#top" className="flex items-center gap-2">
           <span className="grid h-7 w-7 place-items-center rounded-md bg-foreground text-background text-[11px] font-semibold tracking-tight">N</span>
-          <span className="text-sm font-medium tracking-tight">NEX <span className="text-muted-foreground">· Salões</span></span>
+          <span className="text-sm font-medium tracking-tight">Nex0s <span className="text-muted-foreground">· Salões</span></span>
         </a>
-        <a
-          href={waLink("Olá, quero atendimento para meu salão em Macaé.")}
-          target="_blank"
-          rel="noopener noreferrer"
+        <button
+          type="button"
+          onClick={() => triggerReservation()}
           className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-xs font-medium text-background hover:bg-foreground/90"
         >
-          Falar no WhatsApp
-        </a>
+          Reservar minha vaga
+        </button>
       </div>
     </header>
   );
@@ -249,8 +288,8 @@ function Hero() {
 
         <FadeIn delay={0.15}>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <PrimaryCTA href="#planos">Ver planos e garantir vaga</PrimaryCTA>
-            <GhostCTA href={waLink("Olá, quero atendimento para meu salão em Macaé.")}>Falar no WhatsApp</GhostCTA>
+            <ReserveButton variant="primary">Ver planos e garantir vaga</ReserveButton>
+            <ReserveButton variant="ghost">Reservar agora</ReserveButton>
           </div>
         </FadeIn>
 
@@ -1024,15 +1063,13 @@ function SocialProof() {
 
         <FadeIn delay={0.2}>
           <div className="mt-12 flex flex-col items-center gap-4 rounded-2xl border hairline bg-background p-6 sm:flex-row sm:gap-6">
-            <img src={founderPhoto} alt="Fundador NEX" className="h-16 w-16 rounded-full object-cover ring-inset-hairline" />
+            <img src={founderPhoto} alt="Fundador Nex0s" className="h-16 w-16 rounded-full object-cover ring-inset-hairline" />
             <div className="text-center sm:text-left">
               <p className="text-xs uppercase tracking-widest text-muted-foreground">Atendimento direto</p>
-              <p className="mt-1 text-sm">Estúdio NEX · Páginas premium feitas para salões de Macaé.</p>
+              <p className="mt-1 text-sm">Estúdio Nex0s · Páginas premium feitas para salões de Macaé.</p>
             </div>
             <div className="sm:ml-auto">
-              <GhostCTA href={waLink("Olá, quero atendimento para meu salão em Macaé.")}>
-                Conversar com a equipe
-              </GhostCTA>
+              <ReserveButton variant="ghost">Reservar minha vaga</ReserveButton>
             </div>
           </div>
         </FadeIn>
@@ -1177,20 +1214,8 @@ function Urgency() {
         </FadeIn>
         <FadeIn delay={0.15}>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <a
-              href="#planos"
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-7 py-4 text-sm font-medium text-foreground hover:bg-white/90"
-            >
-              Garantir minha vaga →
-            </a>
-            <a
-              href={waLink("Olá, quero garantir minha vaga antes do Dia dos Namorados.")}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 rounded-full border border-white/25 px-7 py-4 text-sm font-medium text-white hover:border-white/60"
-            >
-              Falar agora no WhatsApp
-            </a>
+            <ReserveButton variant="white">Garantir minha vaga</ReserveButton>
+            <ReserveButton variant="outline-white">Reservar agora</ReserveButton>
           </div>
         </FadeIn>
       </div>
@@ -1254,13 +1279,7 @@ function FinalCta({ onChoose }: { onChoose: () => void }) {
         </FadeIn>
         <FadeIn delay={0.15}>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <button
-              onClick={onChoose}
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-foreground px-7 py-4 text-sm font-medium text-background hover:bg-foreground/90 active:scale-[0.98]"
-            >
-              Reservar minha vaga agora →
-            </button>
-            <GhostCTA href="#planos">Ver planos</GhostCTA>
+            <ReserveButton variant="primary">Reservar minha vaga agora</ReserveButton>
           </div>
         </FadeIn>
       </div>
@@ -1274,9 +1293,9 @@ function Footer() {
       <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-6 px-5 py-10 sm:flex-row sm:items-center">
         <div className="flex items-center gap-2">
           <span className="grid h-7 w-7 place-items-center rounded-md bg-foreground text-background text-[11px] font-semibold">N</span>
-          <p className="text-sm">NEX · Páginas premium para salões em Macaé</p>
+          <p className="text-sm">Nex0s · Páginas premium para salões em Macaé</p>
         </div>
-        <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} NEX. Atendimento via WhatsApp 22 97400-5878.</p>
+        <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} Nex0s. Atendimento via WhatsApp 22 97400-5878.</p>
       </div>
     </footer>
   );
@@ -1303,21 +1322,14 @@ function FloatingWhats() {
 function StickyMobileBar() {
   return (
     <div className="fixed inset-x-0 bottom-0 z-30 border-t hairline bg-background/90 backdrop-blur-xl sm:hidden">
-      <div className="grid grid-cols-2 gap-2 p-3">
-        <a
-          href="#planos"
-          className="inline-flex items-center justify-center rounded-full bg-foreground px-4 py-3 text-xs font-medium text-background"
+      <div className="p-3">
+        <button
+          type="button"
+          onClick={() => triggerReservation()}
+          className="inline-flex w-full items-center justify-center rounded-full bg-foreground px-4 py-3 text-xs font-medium text-background"
         >
-          Garantir vaga
-        </a>
-        <a
-          href={waLink("Olá, quero atendimento para meu salão em Macaé.")}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center justify-center rounded-full border hairline px-4 py-3 text-xs font-medium"
-        >
-          WhatsApp
-        </a>
+          Garantir minha vaga →
+        </button>
       </div>
     </div>
   );
@@ -1329,6 +1341,12 @@ function LandingPage() {
   const [selectedId, setSelectedId] = useState<string>("plus");
   const [paymentOpen, setPaymentOpen] = useState(false);
   const selected = PLANS.find((p) => p.id === selectedId) ?? PLANS[1];
+
+  useEffect(() => {
+    const handler = () => setPaymentOpen(true);
+    window.addEventListener(RESERVE_EVENT, handler);
+    return () => window.removeEventListener(RESERVE_EVENT, handler);
+  }, []);
 
   const onChoose = (p: Plan) => {
     setSelectedId(p.id);
