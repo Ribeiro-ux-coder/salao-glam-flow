@@ -110,12 +110,7 @@ function triggerReservation(e?: { preventDefault?: () => void }) {
   e?.preventDefault?.();
   if (typeof window === "undefined") return;
   const el = document.getElementById("planos");
-  if (el) {
-    el.scrollIntoView({ behavior: "smooth", block: "start" });
-    window.setTimeout(() => window.dispatchEvent(new Event(RESERVE_EVENT)), 500);
-  } else {
-    window.dispatchEvent(new Event(RESERVE_EVENT));
-  }
+  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function ReserveButton({
