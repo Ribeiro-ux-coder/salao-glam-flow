@@ -865,9 +865,18 @@ function PaymentFlow({
                         {copied ? "✓ Código PIX copiado" : `Copiar código PIX (${selected.deposit})`}
                       </button>
                     </div>
-                    <p className="mt-2 text-[11px] text-muted-foreground">
-                      Titular {PIX_HOLDER} · {PIX_BANK} · valor já incluso no código
-                    </p>
+                  </div>
+
+                  {/* Titular destaque — confiança */}
+                  <div className="mt-4 rounded-2xl border hairline bg-surface p-4">
+                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Confira o titular antes de pagar</p>
+                    <p className="mt-1 text-sm font-semibold tracking-tight">{PIX_HOLDER}</p>
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">{PIX_BANK} · {PIX_DOC}</p>
+                    <div className="mt-3 grid grid-cols-3 gap-2 text-[10px] text-muted-foreground">
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-background px-2.5 py-1 ring-inset-hairline"><LockIcon /> SSL</span>
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-background px-2.5 py-1 ring-inset-hairline"><LockIcon /> BACEN</span>
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-background px-2.5 py-1 ring-inset-hairline"><LockIcon /> Sem recorrência</span>
+                    </div>
                   </div>
 
 
