@@ -483,11 +483,53 @@ function PaymentFlow({
   const [secondsLeft, setSecondsLeft] = useState(PAYMENT_WINDOW_SECONDS);
   const [expired, setExpired] = useState(false);
 
+  // Real PIX BR Code with the exact amount of the chosen plan
   const pixPayload = useMemo(
-    () =>
-      `PIX MERCADO PAGO | Chave: ${PIX_KEY} | Titular: ${PIX_HOLDER} | Plano: ${selected.name} - Sinal ${selected.deposit}`,
+    () => buildPixPayload(selected.depositValue),
     [selected],
   );
+
+  // Persistent form (step 3) — survives accidental close / reload
+  const STORAGE_KEY = "nex_lead_form_v1";
+  type LeadForm = {
+    salon: string;
+    owner: string;
+    whatsapp: string;
+    instagram: string;
+    address: string;
+    services: string;
+    promo: string;
+  };
+  const emptyForm: LeadForm = {
+    salon: "",
+    owner: "",
+    whatsapp: "",
+    instagram: "",
+    address: "",
+    services: "",
+    promo: "",
+  };
+  const [form, setForm] = useState<LeadForm>(emptyForm);
+
+  // Load persisted form once
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) setForm({ ...emptyForm, ...JSON.parse(raw) });
+    } catch {
+      /* noop */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Persist form on every change
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(form));
+    } catch {
+      /* noop */
+    }
+  }, [form]);
 
   // Lock body scroll
   useEffect(() => {
@@ -527,9 +569,9 @@ function PaymentFlow({
   const ss = String(secondsLeft % 60).padStart(2, "0");
   const pct = (secondsLeft / PAYMENT_WINDOW_SECONDS) * 100;
 
-  const copyKey = async () => {
+  const copyPix = async () => {
     try {
-      await navigator.clipboard.writeText(PIX_KEY);
+      await navigator.clipboard.writeText(pixPayload);
       setCopied(true);
       setTimeout(() => setCopied(false), 1800);
     } catch {
@@ -542,6 +584,31 @@ function PaymentFlow({
     setSecondsLeft(PAYMENT_WINDOW_SECONDS);
     setStep(2);
   };
+
+  const update = <K extends keyof LeadForm>(k: K, v: LeadForm[K]) =>
+    setForm((f) => ({ ...f, [k]: v }));
+
+  const formValid = form.salon.trim().length > 1 && form.whatsapp.trim().length >= 8;
+
+  const buildWaMessage = () =>
+    [
+      `Olá! Acabei de pagar o sinal de ${selected.deposit} do plano ${selected.name}.`,
+      ``,
+      `*Dados do salão:*`,
+      `• Salão: ${form.salon || "-"}`,
+      `• Responsável: ${form.owner || "-"}`,
+      `• WhatsApp: ${form.whatsapp || "-"}`,
+      `• Instagram: ${form.instagram || "-"}`,
+      `• Endereço: ${form.address || "-"}`,
+      ``,
+      `*Serviços principais:*`,
+      form.services || "-",
+      ``,
+      `*Promoção Dia dos Namorados:*`,
+      form.promo || "-",
+      ``,
+      `Vou enviar o comprovante PIX em seguida.`,
+    ].join("\n");
 
   return (
     <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center" role="dialog" aria-modal="true">
