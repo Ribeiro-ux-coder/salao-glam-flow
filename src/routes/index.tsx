@@ -289,6 +289,15 @@ function Hero() {
           </div>
         </FadeIn>
 
+        <FadeIn delay={0.18}>
+          <ul className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px] text-muted-foreground">
+            <li className="inline-flex items-center gap-1.5"><LockIcon /> Pagamento via Mercado Pago</li>
+            <li className="inline-flex items-center gap-1.5"><LockIcon /> Reserva por sinal PIX</li>
+            <li className="inline-flex items-center gap-1.5"><LockIcon /> CNPJ ativo · Macaé/RJ</li>
+            <li className="inline-flex items-center gap-1.5"><LockIcon /> Entrega garantida em 7 dias</li>
+          </ul>
+        </FadeIn>
+
         <FadeIn delay={0.2}>
           <dl className="mt-12 grid grid-cols-3 gap-4 border-t hairline pt-6 max-w-xl">
             <div>
