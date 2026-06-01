@@ -1197,11 +1197,17 @@ function Footer() {
           <span className="grid h-7 w-7 place-items-center rounded-md bg-foreground text-background text-[11px] font-semibold">N</span>
           <p className="text-sm">Nex0s · Páginas premium para salões em Macaé</p>
         </div>
-        <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} Nex0s. Atendimento via WhatsApp 22 97400-5878.</p>
+        <div className="flex flex-col items-start gap-2 sm:items-end">
+          <Link to="/termos" className="text-xs font-medium text-foreground underline-offset-4 hover:underline">
+            Termos de Uso
+          </Link>
+          <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} Nex0s. Atendimento via WhatsApp 22 97400-5878.</p>
+        </div>
       </div>
     </footer>
   );
 }
+
 
 /* ---------- Sticky / Floating CTAs ---------- */
 
