@@ -1342,6 +1342,12 @@ function LandingPage() {
   const [paymentOpen, setPaymentOpen] = useState(false);
   const selected = PLANS.find((p) => p.id === selectedId) ?? PLANS[1];
 
+  useEffect(() => {
+    const handler = () => setPaymentOpen(true);
+    window.addEventListener(RESERVE_EVENT, handler);
+    return () => window.removeEventListener(RESERVE_EVENT, handler);
+  }, []);
+
   const onChoose = (p: Plan) => {
     setSelectedId(p.id);
     setPaymentOpen(true);
