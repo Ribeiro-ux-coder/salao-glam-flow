@@ -45,6 +45,7 @@ const PLANS = [
     name: "Básico",
     price: "R$ 150",
     deposit: "R$ 50",
+    depositValue: 50,
     featured: false,
     tagline: "Presença rápida e objetiva.",
     items: [
@@ -62,6 +63,7 @@ const PLANS = [
     name: "Plus",
     price: "R$ 320",
     deposit: "R$ 120",
+    depositValue: 120,
     featured: true,
     tagline: "Mais conversão e apresentação premium.",
     items: [
@@ -80,6 +82,7 @@ const PLANS = [
     name: "Avançado",
     price: "R$ 520",
     deposit: "R$ 180",
+    depositValue: 180,
     featured: false,
     tagline: "Máximo nível de apresentação profissional.",
     items: [
@@ -99,6 +102,49 @@ type Plan = (typeof PLANS)[number];
 
 function waLink(message: string) {
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+}
+
+/* ---------- PIX BR Code (EMV) ---------- */
+
+const PIX_MERCHANT_NAME = "NICOLE VERA CRUZ";
+const PIX_MERCHANT_CITY = "MACAE";
+
+function emv(id: string, value: string) {
+  const len = value.length.toString().padStart(2, "0");
+  return `${id}${len}${value}`;
+}
+
+function crc16(payload: string) {
+  let crc = 0xffff;
+  for (let i = 0; i < payload.length; i++) {
+    crc ^= payload.charCodeAt(i) << 8;
+    for (let j = 0; j < 8; j++) {
+      crc = (crc & 0x8000) ? (crc << 1) ^ 0x1021 : crc << 1;
+      crc &= 0xffff;
+    }
+  }
+  return crc.toString(16).toUpperCase().padStart(4, "0");
+}
+
+function buildPixPayload(amount: number, txid = "NEX" + Date.now().toString().slice(-8)) {
+  const gui = emv("00", "br.gov.bcb.pix");
+  const key = emv("01", PIX_KEY);
+  const mai = emv("26", gui + key);
+  const cleanTx = txid.replace(/[^A-Za-z0-9]/g, "").slice(0, 25) || "***";
+  const additional = emv("62", emv("05", cleanTx));
+  const amountStr = amount.toFixed(2);
+  const partial =
+    emv("00", "01") +
+    mai +
+    emv("52", "0000") +
+    emv("53", "986") +
+    emv("54", amountStr) +
+    emv("58", "BR") +
+    emv("59", PIX_MERCHANT_NAME.slice(0, 25)) +
+    emv("60", PIX_MERCHANT_CITY.slice(0, 15)) +
+    additional +
+    "6304";
+  return partial + crc16(partial);
 }
 
 /* ---------- Primitives ---------- */
@@ -425,7 +471,60 @@ function CheckIcon() {
 
 const PAYMENT_WINDOW_SECONDS = 15 * 60;
 
+function Field({
+  label,
+  value,
+  onChange,
+  placeholder,
+  inputMode,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  inputMode?: "text" | "tel" | "email" | "url";
+}) {
+  return (
+    <label className="block">
+      <span className="block text-[11px] font-medium uppercase tracking-widest text-muted-foreground">{label}</span>
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        inputMode={inputMode}
+        className="mt-1.5 w-full rounded-xl border hairline bg-surface px-3.5 py-3 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-foreground"
+      />
+    </label>
+  );
+}
+
+function FieldArea({
+  label,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+}) {
+  return (
+    <label className="block">
+      <span className="block text-[11px] font-medium uppercase tracking-widest text-muted-foreground">{label}</span>
+      <textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        rows={3}
+        className="mt-1.5 w-full resize-none rounded-xl border hairline bg-surface px-3.5 py-3 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-foreground"
+      />
+    </label>
+  );
+}
+
 function PaymentFlow({
+
   selected,
   onClose,
 }: {
@@ -437,11 +536,53 @@ function PaymentFlow({
   const [secondsLeft, setSecondsLeft] = useState(PAYMENT_WINDOW_SECONDS);
   const [expired, setExpired] = useState(false);
 
+  // Real PIX BR Code with the exact amount of the chosen plan
   const pixPayload = useMemo(
-    () =>
-      `PIX MERCADO PAGO | Chave: ${PIX_KEY} | Titular: ${PIX_HOLDER} | Plano: ${selected.name} - Sinal ${selected.deposit}`,
+    () => buildPixPayload(selected.depositValue),
     [selected],
   );
+
+  // Persistent form (step 3) — survives accidental close / reload
+  const STORAGE_KEY = "nex_lead_form_v1";
+  type LeadForm = {
+    salon: string;
+    owner: string;
+    whatsapp: string;
+    instagram: string;
+    address: string;
+    services: string;
+    promo: string;
+  };
+  const emptyForm: LeadForm = {
+    salon: "",
+    owner: "",
+    whatsapp: "",
+    instagram: "",
+    address: "",
+    services: "",
+    promo: "",
+  };
+  const [form, setForm] = useState<LeadForm>(emptyForm);
+
+  // Load persisted form once
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) setForm({ ...emptyForm, ...JSON.parse(raw) });
+    } catch {
+      /* noop */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Persist form on every change
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(form));
+    } catch {
+      /* noop */
+    }
+  }, [form]);
 
   // Lock body scroll
   useEffect(() => {
@@ -481,9 +622,9 @@ function PaymentFlow({
   const ss = String(secondsLeft % 60).padStart(2, "0");
   const pct = (secondsLeft / PAYMENT_WINDOW_SECONDS) * 100;
 
-  const copyKey = async () => {
+  const copyPix = async () => {
     try {
-      await navigator.clipboard.writeText(PIX_KEY);
+      await navigator.clipboard.writeText(pixPayload);
       setCopied(true);
       setTimeout(() => setCopied(false), 1800);
     } catch {
@@ -496,6 +637,31 @@ function PaymentFlow({
     setSecondsLeft(PAYMENT_WINDOW_SECONDS);
     setStep(2);
   };
+
+  const update = <K extends keyof LeadForm>(k: K, v: LeadForm[K]) =>
+    setForm((f) => ({ ...f, [k]: v }));
+
+  const formValid = form.salon.trim().length > 1 && form.whatsapp.trim().length >= 8;
+
+  const buildWaMessage = () =>
+    [
+      `Olá! Acabei de pagar o sinal de ${selected.deposit} do plano ${selected.name}.`,
+      ``,
+      `*Dados do salão:*`,
+      `• Salão: ${form.salon || "-"}`,
+      `• Responsável: ${form.owner || "-"}`,
+      `• WhatsApp: ${form.whatsapp || "-"}`,
+      `• Instagram: ${form.instagram || "-"}`,
+      `• Endereço: ${form.address || "-"}`,
+      ``,
+      `*Serviços principais:*`,
+      form.services || "-",
+      ``,
+      `*Promoção Dia dos Namorados:*`,
+      form.promo || "-",
+      ``,
+      `Vou enviar o comprovante PIX em seguida.`,
+    ].join("\n");
 
   return (
     <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center" role="dialog" aria-modal="true">
@@ -638,37 +804,37 @@ function PaymentFlow({
                     </p>
                   </div>
 
-                  {/* PIX COPY (ÊNFASE) */}
+                  {/* QR Code real com valor */}
+                  <div className="mt-5 rounded-2xl border-2 border-foreground bg-background p-5">
+                    <div className="flex flex-col items-center">
+                      <div className="rounded-xl bg-white p-3">
+                        <QRCodeSVG value={pixPayload} size={196} level="M" includeMargin={false} />
+                      </div>
+                      <p className="mt-3 text-center text-[11px] text-muted-foreground">
+                        Abra o app do seu banco · escaneie · valor já vem preenchido ({selected.deposit})
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* PIX COPIA E COLA (ÊNFASE) */}
                   <div className="mt-5">
                     <p className="text-[10px] uppercase tracking-widest text-muted-foreground">PIX copia e cola</p>
                     <div className="mt-2 rounded-2xl border-2 border-foreground bg-background p-4">
-                      <code className="block break-all text-xs font-medium leading-relaxed">{PIX_KEY}</code>
+                      <code className="block max-h-24 overflow-y-auto break-all text-[11px] font-medium leading-relaxed text-muted-foreground">
+                        {pixPayload}
+                      </code>
                       <button
-                        onClick={copyKey}
+                        onClick={copyPix}
                         className="mt-3 w-full rounded-full bg-foreground px-5 py-3.5 text-sm font-semibold text-background transition-transform active:scale-[0.98]"
                       >
-                        {copied ? "✓ Chave copiada" : "Copiar chave PIX"}
+                        {copied ? "✓ Código PIX copiado" : `Copiar código PIX (${selected.deposit})`}
                       </button>
                     </div>
                     <p className="mt-2 text-[11px] text-muted-foreground">
-                      Cole no app do seu banco · Titular {PIX_HOLDER} · {PIX_BANK}
+                      Titular {PIX_HOLDER} · {PIX_BANK} · valor já incluso no código
                     </p>
                   </div>
 
-                  {/* QR alternative */}
-                  <details className="mt-4 rounded-xl border hairline bg-surface px-4 py-3 text-sm">
-                    <summary className="cursor-pointer list-none text-xs font-medium text-muted-foreground">
-                      Preferir QR Code →
-                    </summary>
-                    <div className="mt-4 flex flex-col items-center">
-                      <div className="rounded-xl bg-white p-3">
-                        <QRCodeSVG value={pixPayload} size={148} level="M" />
-                      </div>
-                      <p className="mt-3 text-[11px] text-muted-foreground">
-                        Aponte a câmera do seu banco.
-                      </p>
-                    </div>
-                  </details>
 
                   <div className="mt-6 flex flex-col gap-2">
                     <button
@@ -714,46 +880,61 @@ function PaymentFlow({
           {/* STEP 3 */}
           {step === 3 && (
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-              <p className="eyebrow">Etapa 03 · Comprovante</p>
-              <h3 className="mt-3 text-2xl font-semibold tracking-tight">Envie o comprovante.</h3>
+              <p className="eyebrow">Etapa 03 · Seus dados</p>
+              <h3 className="mt-3 text-2xl font-semibold tracking-tight">Quase pronto — só faltam seus dados.</h3>
               <p className="mt-2 text-sm text-muted-foreground">
-                Confirmamos sua vaga em minutos pelo WhatsApp e damos início à produção.
+                Preencha abaixo e enviamos tudo direto para o WhatsApp já formatado. Suas informações ficam salvas — se sair sem querer, voltam preenchidas.
               </p>
 
-              <div className="mt-5 rounded-2xl bg-surface p-5 ring-inset-hairline">
-                <p className="text-xs uppercase tracking-widest text-muted-foreground">O que enviar</p>
-                <ul className="mt-3 space-y-2 text-sm">
-                  <li className="flex items-start gap-2"><span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-foreground" /> Comprovante PIX ({selected.deposit})</li>
-                  <li className="flex items-start gap-2"><span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-foreground" /> Fotos do seu salão</li>
-                  <li className="flex items-start gap-2"><span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-foreground" /> Logo e cores (se tiver)</li>
-                  <li className="flex items-start gap-2"><span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-foreground" /> Promoções do Dia dos Namorados</li>
-                </ul>
+              <div className="mt-5 space-y-3">
+                <Field label="Nome do salão *" value={form.salon} onChange={(v) => update("salon", v)} placeholder="Ex: Studio Bella" />
+                <Field label="Seu nome" value={form.owner} onChange={(v) => update("owner", v)} placeholder="Responsável pelo salão" />
+                <Field label="WhatsApp *" value={form.whatsapp} onChange={(v) => update("whatsapp", v)} placeholder="(22) 9 9999-9999" inputMode="tel" />
+                <Field label="Instagram" value={form.instagram} onChange={(v) => update("instagram", v)} placeholder="@seusalao" />
+                <Field label="Endereço em Macaé" value={form.address} onChange={(v) => update("address", v)} placeholder="Bairro / rua" />
+                <FieldArea label="Principais serviços" value={form.services} onChange={(v) => update("services", v)} placeholder="Ex: progressiva, manicure, design de sobrancelha…" />
+                <FieldArea label="Promoção do Dia dos Namorados" value={form.promo} onChange={(v) => update("promo", v)} placeholder="Ex: pacote casal por R$ 199, válido até 12/06" />
+              </div>
+
+              <div className="mt-5 rounded-2xl bg-surface p-4 ring-inset-hairline">
+                <p className="text-[11px] uppercase tracking-widest text-muted-foreground">Resumo</p>
+                <div className="mt-2 flex items-center justify-between text-sm">
+                  <span>Plano {selected.name}</span>
+                  <span className="font-semibold">Sinal {selected.deposit}</span>
+                </div>
               </div>
 
               <div className="mt-6 flex flex-col gap-2">
                 <a
-                  href={waLink(
-                    `Olá! Acabei de pagar o sinal de ${selected.deposit} do plano ${selected.name}. Vou enviar o comprovante e o material do salão.`,
-                  )}
+                  href={formValid ? waLink(buildWaMessage()) : undefined}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-6 py-4 text-sm font-semibold text-background active:scale-[0.98]"
+                  aria-disabled={!formValid}
+                  onClick={(e) => {
+                    if (!formValid) e.preventDefault();
+                  }}
+                  className={`inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-4 text-sm font-semibold transition-transform active:scale-[0.98] ${
+                    formValid
+                      ? "bg-foreground text-background"
+                      : "cursor-not-allowed bg-surface text-muted-foreground ring-inset-hairline"
+                  }`}
                 >
-                  Abrir WhatsApp →
+                  Enviar tudo no WhatsApp →
                 </a>
                 <button
-                  onClick={onClose}
+                  onClick={() => setStep(2)}
                   className="w-full rounded-full border hairline px-6 py-3 text-xs font-medium text-muted-foreground hover:text-foreground"
                 >
-                  Fechar
+                  ← Voltar para o PIX
                 </button>
               </div>
 
               <p className="mt-4 text-center text-[11px] text-muted-foreground">
-                Atendimento direto · 22 97400-5878
+                <LockIcon /> Seus dados ficam apenas no seu aparelho até você enviar · Atendimento: 22 97400-5878
               </p>
             </motion.div>
           )}
+
         </div>
 
         {/* Trust footer */}
