@@ -1322,21 +1322,14 @@ function FloatingWhats() {
 function StickyMobileBar() {
   return (
     <div className="fixed inset-x-0 bottom-0 z-30 border-t hairline bg-background/90 backdrop-blur-xl sm:hidden">
-      <div className="grid grid-cols-2 gap-2 p-3">
-        <a
-          href="#planos"
-          className="inline-flex items-center justify-center rounded-full bg-foreground px-4 py-3 text-xs font-medium text-background"
+      <div className="p-3">
+        <button
+          type="button"
+          onClick={() => triggerReservation()}
+          className="inline-flex w-full items-center justify-center rounded-full bg-foreground px-4 py-3 text-xs font-medium text-background"
         >
-          Garantir vaga
-        </a>
-        <a
-          href={waLink("Olá, quero atendimento para meu salão em Macaé.")}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center justify-center rounded-full border hairline px-4 py-3 text-xs font-medium"
-        >
-          WhatsApp
-        </a>
+          Garantir minha vaga →
+        </button>
       </div>
     </div>
   );
