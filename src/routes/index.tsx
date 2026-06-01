@@ -668,15 +668,16 @@ function PaymentFlow({
   const ss = String(secondsLeft % 60).padStart(2, "0");
   const pct = (secondsLeft / PAYMENT_WINDOW_SECONDS) * 100;
 
-  const copyPix = async () => {
+  const copyLink = async () => {
     try {
-      await navigator.clipboard.writeText(pixPayload);
+      await navigator.clipboard.writeText(paymentLink);
       setCopied(true);
       setTimeout(() => setCopied(false), 1800);
     } catch {
       /* noop */
     }
   };
+
 
   const restart = () => {
     setExpired(false);
