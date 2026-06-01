@@ -1116,7 +1116,7 @@ function Urgency() {
         </FadeIn>
         <FadeIn delay={0.15}>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <ReserveButton variant="white">Garantir minha vaga</ReserveButton>
+            <ReserveButton variant="white" className="bg-neutral-900 text-white border border-white/20 hover:bg-neutral-800">Garantir minha vaga</ReserveButton>
             <ReserveButton variant="outline-white">Reservar agora</ReserveButton>
           </div>
         </FadeIn>
