@@ -11,13 +11,13 @@ import founderPhoto from "@/assets/founder.png";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "NEX — Páginas Premium para Salões de Beleza em Macaé" },
+      { title: "Nex0s — Páginas Premium para Salões de Beleza em Macaé" },
       {
         name: "description",
         content:
           "Página profissional, mobile-first e otimizada para conversão. Mais agendamentos, mais clientes no WhatsApp e mais vendas no Dia dos Namorados. Vagas limitadas para salões em Macaé.",
       },
-      { property: "og:title", content: "NEX — Páginas Premium para Salões em Macaé" },
+      { property: "og:title", content: "Nex0s — Páginas Premium para Salões em Macaé" },
       {
         property: "og:description",
         content:
