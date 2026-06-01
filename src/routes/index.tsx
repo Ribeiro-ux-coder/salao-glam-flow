@@ -288,8 +288,8 @@ function Hero() {
 
         <FadeIn delay={0.15}>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <PrimaryCTA href="#planos">Ver planos e garantir vaga</PrimaryCTA>
-            <GhostCTA href={waLink("Olá, quero atendimento para meu salão em Macaé.")}>Falar no WhatsApp</GhostCTA>
+            <ReserveButton variant="primary">Ver planos e garantir vaga</ReserveButton>
+            <ReserveButton variant="ghost">Reservar agora</ReserveButton>
           </div>
         </FadeIn>
 
