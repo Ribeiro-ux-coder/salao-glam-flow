@@ -827,46 +827,61 @@ function PaymentFlow({
           {/* STEP 3 */}
           {step === 3 && (
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-              <p className="eyebrow">Etapa 03 · Comprovante</p>
-              <h3 className="mt-3 text-2xl font-semibold tracking-tight">Envie o comprovante.</h3>
+              <p className="eyebrow">Etapa 03 · Seus dados</p>
+              <h3 className="mt-3 text-2xl font-semibold tracking-tight">Quase pronto — só faltam seus dados.</h3>
               <p className="mt-2 text-sm text-muted-foreground">
-                Confirmamos sua vaga em minutos pelo WhatsApp e damos início à produção.
+                Preencha abaixo e enviamos tudo direto para o WhatsApp já formatado. Suas informações ficam salvas — se sair sem querer, voltam preenchidas.
               </p>
 
-              <div className="mt-5 rounded-2xl bg-surface p-5 ring-inset-hairline">
-                <p className="text-xs uppercase tracking-widest text-muted-foreground">O que enviar</p>
-                <ul className="mt-3 space-y-2 text-sm">
-                  <li className="flex items-start gap-2"><span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-foreground" /> Comprovante PIX ({selected.deposit})</li>
-                  <li className="flex items-start gap-2"><span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-foreground" /> Fotos do seu salão</li>
-                  <li className="flex items-start gap-2"><span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-foreground" /> Logo e cores (se tiver)</li>
-                  <li className="flex items-start gap-2"><span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-foreground" /> Promoções do Dia dos Namorados</li>
-                </ul>
+              <div className="mt-5 space-y-3">
+                <Field label="Nome do salão *" value={form.salon} onChange={(v) => update("salon", v)} placeholder="Ex: Studio Bella" />
+                <Field label="Seu nome" value={form.owner} onChange={(v) => update("owner", v)} placeholder="Responsável pelo salão" />
+                <Field label="WhatsApp *" value={form.whatsapp} onChange={(v) => update("whatsapp", v)} placeholder="(22) 9 9999-9999" inputMode="tel" />
+                <Field label="Instagram" value={form.instagram} onChange={(v) => update("instagram", v)} placeholder="@seusalao" />
+                <Field label="Endereço em Macaé" value={form.address} onChange={(v) => update("address", v)} placeholder="Bairro / rua" />
+                <FieldArea label="Principais serviços" value={form.services} onChange={(v) => update("services", v)} placeholder="Ex: progressiva, manicure, design de sobrancelha…" />
+                <FieldArea label="Promoção do Dia dos Namorados" value={form.promo} onChange={(v) => update("promo", v)} placeholder="Ex: pacote casal por R$ 199, válido até 12/06" />
+              </div>
+
+              <div className="mt-5 rounded-2xl bg-surface p-4 ring-inset-hairline">
+                <p className="text-[11px] uppercase tracking-widest text-muted-foreground">Resumo</p>
+                <div className="mt-2 flex items-center justify-between text-sm">
+                  <span>Plano {selected.name}</span>
+                  <span className="font-semibold">Sinal {selected.deposit}</span>
+                </div>
               </div>
 
               <div className="mt-6 flex flex-col gap-2">
                 <a
-                  href={waLink(
-                    `Olá! Acabei de pagar o sinal de ${selected.deposit} do plano ${selected.name}. Vou enviar o comprovante e o material do salão.`,
-                  )}
+                  href={formValid ? waLink(buildWaMessage()) : undefined}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-6 py-4 text-sm font-semibold text-background active:scale-[0.98]"
+                  aria-disabled={!formValid}
+                  onClick={(e) => {
+                    if (!formValid) e.preventDefault();
+                  }}
+                  className={`inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-4 text-sm font-semibold transition-transform active:scale-[0.98] ${
+                    formValid
+                      ? "bg-foreground text-background"
+                      : "cursor-not-allowed bg-surface text-muted-foreground ring-inset-hairline"
+                  }`}
                 >
-                  Abrir WhatsApp →
+                  Enviar tudo no WhatsApp →
                 </a>
                 <button
-                  onClick={onClose}
+                  onClick={() => setStep(2)}
                   className="w-full rounded-full border hairline px-6 py-3 text-xs font-medium text-muted-foreground hover:text-foreground"
                 >
-                  Fechar
+                  ← Voltar para o PIX
                 </button>
               </div>
 
               <p className="mt-4 text-center text-[11px] text-muted-foreground">
-                Atendimento direto · 22 97400-5878
+                <LockIcon /> Seus dados ficam apenas no seu aparelho até você enviar · Atendimento: 22 97400-5878
               </p>
             </motion.div>
           )}
+
         </div>
 
         {/* Trust footer */}
