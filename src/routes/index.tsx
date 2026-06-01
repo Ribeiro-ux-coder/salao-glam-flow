@@ -1,12 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState, type ReactNode } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 
-import { QRCodeSVG } from "qrcode.react";
 import salonHero from "@/assets/salon-hero.jpg";
 import mockupPhone from "@/assets/mockup-phone.jpg";
 
 import founderPhoto from "@/assets/founder.png";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -47,6 +47,7 @@ const PLANS = [
     price: "R$ 150",
     deposit: "R$ 50",
     depositValue: 50,
+    paymentLink: "https://mpago.la/2FzZdec",
     featured: false,
     tagline: "Presença rápida e objetiva.",
     items: [
@@ -65,6 +66,7 @@ const PLANS = [
     price: "R$ 320",
     deposit: "R$ 120",
     depositValue: 120,
+    paymentLink: "https://mpago.la/2gLRm7w",
     featured: true,
     tagline: "Mais conversão e apresentação premium.",
     items: [
@@ -84,6 +86,7 @@ const PLANS = [
     price: "R$ 520",
     deposit: "R$ 180",
     depositValue: 180,
+    paymentLink: "https://mpago.la/1nFjNjv",
     featured: false,
     tagline: "Máximo nível de apresentação profissional.",
     items: [
@@ -98,6 +101,7 @@ const PLANS = [
     limit: "Até 5 alterações após envio da prévia.",
   },
 ] as const;
+
 
 type Plan = (typeof PLANS)[number];
 
@@ -580,11 +584,9 @@ function PaymentFlow({
   const [secondsLeft, setSecondsLeft] = useState(PAYMENT_WINDOW_SECONDS);
   const [expired, setExpired] = useState(false);
 
-  // Real PIX BR Code with the exact amount of the chosen plan
-  const pixPayload = useMemo(
-    () => buildPixPayload(selected.depositValue),
-    [selected],
-  );
+  // Mercado Pago checkout link for the chosen plan
+  const paymentLink = selected.paymentLink;
+
 
   // Persistent form (step 3) — survives accidental close / reload
   const STORAGE_KEY = "nex_lead_form_v1";
@@ -666,15 +668,16 @@ function PaymentFlow({
   const ss = String(secondsLeft % 60).padStart(2, "0");
   const pct = (secondsLeft / PAYMENT_WINDOW_SECONDS) * 100;
 
-  const copyPix = async () => {
+  const copyLink = async () => {
     try {
-      await navigator.clipboard.writeText(pixPayload);
+      await navigator.clipboard.writeText(paymentLink);
       setCopied(true);
       setTimeout(() => setCopied(false), 1800);
     } catch {
       /* noop */
     }
   };
+
 
   const restart = () => {
     setExpired(false);
@@ -848,32 +851,27 @@ function PaymentFlow({
                     </p>
                   </div>
 
-                  {/* QR Code real com valor */}
+                  {/* Botão Mercado Pago — link oficial com valor já fixo */}
                   <div className="mt-5 rounded-2xl border-2 border-foreground bg-background p-5">
-                    <div className="flex flex-col items-center">
-                      <div className="rounded-xl bg-white p-3">
-                        <QRCodeSVG value={pixPayload} size={196} level="M" includeMargin={false} />
-                      </div>
-                      <p className="mt-3 text-center text-[11px] text-muted-foreground">
-                        Abra o app do seu banco · escaneie · valor já vem preenchido ({selected.deposit})
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* PIX COPIA E COLA (ÊNFASE) */}
-                  <div className="mt-5">
-                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground">PIX copia e cola</p>
-                    <div className="mt-2 rounded-2xl border-2 border-foreground bg-background p-4">
-                      <code className="block max-h-24 overflow-y-auto break-all text-[11px] font-medium leading-relaxed text-muted-foreground">
-                        {pixPayload}
-                      </code>
-                      <button
-                        onClick={copyPix}
-                        className="mt-3 w-full rounded-full bg-foreground px-5 py-3.5 text-sm font-semibold text-background transition-transform active:scale-[0.98]"
-                      >
-                        {copied ? "✓ Código PIX copiado" : `Copiar código PIX (${selected.deposit})`}
-                      </button>
-                    </div>
+                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground">Pagamento seguro</p>
+                    <p className="mt-1 text-sm">
+                      Você será direcionado ao <span className="font-semibold">Mercado Pago</span> com o valor do sinal já preenchido ({selected.deposit}).
+                      Pague por PIX, cartão ou saldo Mercado Pago.
+                    </p>
+                    <a
+                      href={paymentLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#009ee3] px-6 py-4 text-sm font-semibold text-white transition-transform active:scale-[0.98] hover:bg-[#008fcf]"
+                    >
+                      Pagar {selected.deposit} no Mercado Pago →
+                    </a>
+                    <button
+                      onClick={copyLink}
+                      className="mt-2 w-full rounded-full border hairline px-5 py-2.5 text-xs font-medium text-muted-foreground hover:text-foreground"
+                    >
+                      {copied ? "✓ Link copiado" : "Copiar link de pagamento"}
+                    </button>
                   </div>
 
                   {/* Titular destaque — confiança */}
@@ -887,6 +885,8 @@ function PaymentFlow({
                       <span className="inline-flex items-center gap-1.5 rounded-full bg-background px-2.5 py-1 ring-inset-hairline"><LockIcon /> Sem recorrência</span>
                     </div>
                   </div>
+
+
 
 
                   <div className="mt-6 flex flex-col gap-2">
@@ -1197,11 +1197,17 @@ function Footer() {
           <span className="grid h-7 w-7 place-items-center rounded-md bg-foreground text-background text-[11px] font-semibold">N</span>
           <p className="text-sm">Nex0s · Páginas premium para salões em Macaé</p>
         </div>
-        <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} Nex0s. Atendimento via WhatsApp 22 97400-5878.</p>
+        <div className="flex flex-col items-start gap-2 sm:items-end">
+          <Link to="/termos" className="text-xs font-medium text-foreground underline-offset-4 hover:underline">
+            Termos de Uso
+          </Link>
+          <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} Nex0s. Atendimento via WhatsApp 22 97400-5878.</p>
+        </div>
       </div>
     </footer>
   );
 }
+
 
 /* ---------- Sticky / Floating CTAs ---------- */
 
