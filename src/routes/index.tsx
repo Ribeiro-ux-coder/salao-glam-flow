@@ -47,6 +47,7 @@ const PLANS = [
     price: "R$ 150",
     deposit: "R$ 50",
     depositValue: 50,
+    paymentLink: "https://mpago.la/2FzZdec",
     featured: false,
     tagline: "Presença rápida e objetiva.",
     items: [
@@ -65,6 +66,7 @@ const PLANS = [
     price: "R$ 320",
     deposit: "R$ 120",
     depositValue: 120,
+    paymentLink: "https://mpago.la/2gLRm7w",
     featured: true,
     tagline: "Mais conversão e apresentação premium.",
     items: [
@@ -84,6 +86,7 @@ const PLANS = [
     price: "R$ 520",
     deposit: "R$ 180",
     depositValue: 180,
+    paymentLink: "https://mpago.la/1nFjNjv",
     featured: false,
     tagline: "Máximo nível de apresentação profissional.",
     items: [
@@ -98,6 +101,7 @@ const PLANS = [
     limit: "Até 5 alterações após envio da prévia.",
   },
 ] as const;
+
 
 type Plan = (typeof PLANS)[number];
 
