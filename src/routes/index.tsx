@@ -751,37 +751,37 @@ function PaymentFlow({
                     </p>
                   </div>
 
-                  {/* PIX COPY (ÊNFASE) */}
+                  {/* QR Code real com valor */}
+                  <div className="mt-5 rounded-2xl border-2 border-foreground bg-background p-5">
+                    <div className="flex flex-col items-center">
+                      <div className="rounded-xl bg-white p-3">
+                        <QRCodeSVG value={pixPayload} size={196} level="M" includeMargin={false} />
+                      </div>
+                      <p className="mt-3 text-center text-[11px] text-muted-foreground">
+                        Abra o app do seu banco · escaneie · valor já vem preenchido ({selected.deposit})
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* PIX COPIA E COLA (ÊNFASE) */}
                   <div className="mt-5">
                     <p className="text-[10px] uppercase tracking-widest text-muted-foreground">PIX copia e cola</p>
                     <div className="mt-2 rounded-2xl border-2 border-foreground bg-background p-4">
-                      <code className="block break-all text-xs font-medium leading-relaxed">{PIX_KEY}</code>
+                      <code className="block max-h-24 overflow-y-auto break-all text-[11px] font-medium leading-relaxed text-muted-foreground">
+                        {pixPayload}
+                      </code>
                       <button
-                        onClick={copyKey}
+                        onClick={copyPix}
                         className="mt-3 w-full rounded-full bg-foreground px-5 py-3.5 text-sm font-semibold text-background transition-transform active:scale-[0.98]"
                       >
-                        {copied ? "✓ Chave copiada" : "Copiar chave PIX"}
+                        {copied ? "✓ Código PIX copiado" : `Copiar código PIX (${selected.deposit})`}
                       </button>
                     </div>
                     <p className="mt-2 text-[11px] text-muted-foreground">
-                      Cole no app do seu banco · Titular {PIX_HOLDER} · {PIX_BANK}
+                      Titular {PIX_HOLDER} · {PIX_BANK} · valor já incluso no código
                     </p>
                   </div>
 
-                  {/* QR alternative */}
-                  <details className="mt-4 rounded-xl border hairline bg-surface px-4 py-3 text-sm">
-                    <summary className="cursor-pointer list-none text-xs font-medium text-muted-foreground">
-                      Preferir QR Code →
-                    </summary>
-                    <div className="mt-4 flex flex-col items-center">
-                      <div className="rounded-xl bg-white p-3">
-                        <QRCodeSVG value={pixPayload} size={148} level="M" />
-                      </div>
-                      <p className="mt-3 text-[11px] text-muted-foreground">
-                        Aponte a câmera do seu banco.
-                      </p>
-                    </div>
-                  </details>
 
                   <div className="mt-6 flex flex-col gap-2">
                     <button
