@@ -983,10 +983,21 @@ function PaymentFlow({
           {step === 3 && (
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
               <p className="eyebrow">Etapa 03 · Seus dados</p>
-              <h3 className="mt-3 text-2xl font-semibold tracking-tight">Quase pronto — só faltam seus dados.</h3>
+              <h3 className="mt-3 text-2xl font-semibold tracking-tight">Quase pronto — só faltam seus dados e o comprovante.</h3>
               <p className="mt-2 text-sm text-muted-foreground">
-                Preencha abaixo e enviamos tudo direto para o WhatsApp já formatado. Suas informações ficam salvas — se sair sem querer, voltam preenchidas.
+                Preencha abaixo, anexe o comprovante do pagamento e enviamos tudo direto para o WhatsApp já formatado.
+                Suas informações ficam salvas — se sair sem querer, voltam preenchidas.
               </p>
+
+              {/* Aviso anti-duplicidade */}
+              <div className="mt-4 rounded-xl border border-amber-500/40 bg-amber-50 p-3 text-[12px] leading-relaxed text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+                <p className="font-semibold">Importante — evite pagamento duplicado:</p>
+                <ul className="mt-1 list-disc space-y-0.5 pl-4">
+                  <li>Pague o sinal <strong>uma única vez</strong>. Se já apareceu “pagamento aprovado”, está pago.</li>
+                  <li>Em caso de dúvida, <strong>não pague de novo</strong> — fale com a gente pelo WhatsApp.</li>
+                  <li>Sua reserva só é confirmada após o envio do comprovante abaixo.</li>
+                </ul>
+              </div>
 
               <div className="mt-5 space-y-3">
                 <Field label="Nome do salão *" value={form.salon} onChange={(v) => update("salon", v)} placeholder="Ex: Studio Bella" />
@@ -996,6 +1007,76 @@ function PaymentFlow({
                 <Field label="Endereço em Macaé" value={form.address} onChange={(v) => update("address", v)} placeholder="Bairro / rua" />
                 <FieldArea label="Principais serviços" value={form.services} onChange={(v) => update("services", v)} placeholder="Ex: progressiva, manicure, design de sobrancelha…" />
                 <FieldArea label="Promoção do Dia dos Namorados" value={form.promo} onChange={(v) => update("promo", v)} placeholder="Ex: pacote casal por R$ 199, válido até 12/06" />
+              </div>
+
+              {/* Upload do comprovante */}
+              <div className="mt-5 rounded-2xl border-2 border-dashed border-foreground/30 bg-surface p-4">
+                <p className="text-[11px] uppercase tracking-widest text-muted-foreground">Comprovante do pagamento *</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Anexe a foto/print do comprovante (JPG, PNG, WEBP ou PDF, até 5MB). É obrigatório para liberar o envio.
+                </p>
+
+                {!receipt ? (
+                  <label className="mt-3 flex w-full cursor-pointer items-center justify-center gap-2 rounded-full border hairline bg-background px-5 py-3 text-sm font-medium text-foreground hover:bg-surface">
+                    <span>📎 Anexar comprovante</span>
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp,application/pdf"
+                      className="hidden"
+                      onChange={(e) => onReceiptFile(e.target.files?.[0] ?? null)}
+                    />
+                  </label>
+                ) : (
+                  <div className="mt-3">
+                    {receipt.dataUrl.startsWith("data:image") ? (
+                      <img
+                        src={receipt.dataUrl}
+                        alt="Pré-visualização do comprovante"
+                        className="max-h-56 w-full rounded-xl border hairline object-contain bg-background"
+                      />
+                    ) : (
+                      <div className="rounded-xl border hairline bg-background p-4 text-center text-xs text-muted-foreground">
+                        📄 PDF anexado — {receipt.name}
+                      </div>
+                    )}
+                    <div className="mt-2 flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
+                      <span className="truncate">✓ {receipt.name} ({(receipt.size / 1024).toFixed(0)} KB)</span>
+                      <div className="flex gap-2">
+                        <label className="cursor-pointer rounded-full border hairline px-3 py-1 hover:text-foreground">
+                          Trocar
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp,application/pdf"
+                            className="hidden"
+                            onChange={(e) => onReceiptFile(e.target.files?.[0] ?? null)}
+                          />
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setReceipt(null)}
+                          className="rounded-full border hairline px-3 py-1 hover:text-foreground"
+                        >
+                          Remover
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {receiptError && (
+                  <p className="mt-2 text-[11px] font-medium text-destructive">{receiptError}</p>
+                )}
+
+                {receipt && (
+                  <div className="mt-3 rounded-xl bg-background p-3 text-[12px] leading-relaxed text-muted-foreground ring-inset-hairline">
+                    <p className="font-semibold text-foreground">Próximo passo (atenção):</p>
+                    <ol className="mt-1 list-decimal space-y-0.5 pl-4">
+                      <li>Clique em <strong>“Enviar tudo no WhatsApp”</strong> — a mensagem abre pronta.</li>
+                      <li>Na conversa do WhatsApp, <strong>anexe o comprovante</strong> que você acabou de subir aqui (📎 anexo no WhatsApp).</li>
+                      <li>Se preferir, <button type="button" onClick={downloadReceipt} className="underline underline-offset-2 hover:text-foreground">baixe novamente o comprovante</button> antes de anexar.</li>
+                    </ol>
+                  </div>
+                )}
               </div>
 
               <div className="mt-5 rounded-2xl bg-surface p-4 ring-inset-hairline">
