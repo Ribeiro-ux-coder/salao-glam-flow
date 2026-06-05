@@ -860,13 +860,25 @@ function PaymentFlow({
                       Você será direcionado ao <span className="font-semibold">Mercado Pago</span> com o valor do sinal já preenchido ({selected.deposit}).
                       Pague por PIX, cartão ou saldo Mercado Pago.
                     </p>
+
+                    {paidClicked && (
+                      <div className="mt-3 rounded-xl border border-amber-500/40 bg-amber-50 p-3 text-[12px] leading-relaxed text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+                        <p className="font-semibold">⚠️ Você já abriu o pagamento.</p>
+                        <p className="mt-1">
+                          Se o PIX/cartão foi confirmado, <strong>NÃO pague de novo</strong>.
+                          Avance para o próximo passo e nos envie o comprovante.
+                        </p>
+                      </div>
+                    )}
+
                     <a
                       href={paymentLink}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={() => setPaidClicked(true)}
                       className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#009ee3] px-6 py-4 text-sm font-semibold text-white transition-transform active:scale-[0.98] hover:bg-[#008fcf]"
                     >
-                      Pagar {selected.deposit} no Mercado Pago →
+                      {paidClicked ? `Reabrir pagamento (${selected.deposit})` : `Pagar ${selected.deposit} no Mercado Pago →`}
                     </a>
                     <button
                       onClick={copyLink}
@@ -874,6 +886,10 @@ function PaymentFlow({
                     >
                       {copied ? "✓ Link copiado" : "Copiar link de pagamento"}
                     </button>
+                    <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
+                      Ao voltar para este site, sua reserva continuará exatamente neste passo —
+                      você não precisa começar do zero.
+                    </p>
                   </div>
 
                   {/* Titular destaque — confiança */}
