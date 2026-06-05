@@ -289,6 +289,9 @@ function Hero() {
               alt="Salão de beleza minimalista premium"
               width={1280}
               height={1600}
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
               className="aspect-[4/5] sm:aspect-[16/9] w-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0" />
