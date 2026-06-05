@@ -971,7 +971,7 @@ const STEPS = [
   { t: "Pague o sinal via PIX", d: "Reserva sua vaga na fila de produção." },
   { t: "Envie comprovante + fotos", d: "Tudo direto pelo WhatsApp." },
   { t: "Projeto entra na fila", d: "Acompanhamento próximo durante a produção." },
-  { t: "Prévia em até 7 dias", d: "Versão funcional para sua aprovação." },
+  { t: "Prévia em até 2 dias", d: "Versão funcional para sua aprovação." },
   { t: "Pague o restante", d: "Sinal descontado do valor total." },
   { t: "Página final liberada", d: "Pronta para anúncios e Instagram." },
 ];
