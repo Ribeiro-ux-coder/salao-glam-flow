@@ -41,7 +41,7 @@ const SECTIONS: Array<{ title: string; body: string | string[] }> = [
   {
     title: "4. Prazo de entrega",
     body:
-      "A prévia funcional é enviada em até 7 dias corridos após a confirmação do pagamento do sinal e do recebimento das informações e fotos do salão. A versão final é liberada após a aprovação da prévia e o pagamento do valor restante.",
+      "A prévia funcional é enviada em até 2 dias corridos após a confirmação do pagamento do sinal e do recebimento das informações e fotos do salão. A versão final é liberada após a aprovação da prévia e o pagamento do valor restante.",
   },
   {
     title: "5. Alterações e revisões",
