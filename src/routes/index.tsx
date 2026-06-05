@@ -40,7 +40,7 @@ export const Route = createFileRoute("/")({
 /* ---------- Constants ---------- */
 
 const WHATSAPP_NUMBER = "5522974005878";
-const PIX_KEY = "sitesnex@gmail.com";
+
 const PIX_HOLDER = "Nicoly Vera Cruz da Conceição";
 const PIX_DOC = "CPF cadastrado · Macaé/RJ";
 const PIX_BANK = "Mercado Pago";
