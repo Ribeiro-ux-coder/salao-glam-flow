@@ -269,7 +269,7 @@ function Hero() {
           <dl className="mt-12 grid grid-cols-3 gap-4 border-t hairline pt-6 max-w-xl">
             <div>
               <dt className="text-[10px] uppercase tracking-widest text-muted-foreground">Entrega</dt>
-              <dd className="mt-1 text-lg font-medium tracking-tight">7 dias</dd>
+              <dd className="mt-1 text-lg font-medium tracking-tight">2 dias</dd>
             </div>
             <div>
               <dt className="text-[10px] uppercase tracking-widest text-muted-foreground">Foco</dt>
