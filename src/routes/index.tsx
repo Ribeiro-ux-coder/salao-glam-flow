@@ -1214,10 +1214,41 @@ function StickyMobileBar() {
 
 /* ---------- Page ---------- */
 
+const FUNNEL_STATE_KEY = "nex_funnel_state_v1";
+
 function LandingPage() {
   const [selectedId, setSelectedId] = useState<string>("plus");
   const [paymentOpen, setPaymentOpen] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
   const selected = PLANS.find((p) => p.id === selectedId) ?? PLANS[1];
+
+  // Restore funnel state on mount (so returning from Mercado Pago lands on the same screen)
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(FUNNEL_STATE_KEY);
+      if (raw) {
+        const s = JSON.parse(raw) as { open?: boolean; planId?: string };
+        if (s.planId) setSelectedId(s.planId);
+        if (s.open) setPaymentOpen(true);
+      }
+    } catch {
+      /* noop */
+    }
+    setHydrated(true);
+  }, []);
+
+  // Persist funnel state
+  useEffect(() => {
+    if (!hydrated) return;
+    try {
+      sessionStorage.setItem(
+        FUNNEL_STATE_KEY,
+        JSON.stringify({ open: paymentOpen, planId: selectedId }),
+      );
+    } catch {
+      /* noop */
+    }
+  }, [paymentOpen, selectedId, hydrated]);
 
   useEffect(() => {
     const handler = () => setPaymentOpen(true);
