@@ -375,6 +375,7 @@ function Mockups() {
                 width={1024}
                 height={1280}
                 loading="lazy"
+                decoding="async"
                 className="w-full rounded-2xl object-cover"
               />
             </div>
