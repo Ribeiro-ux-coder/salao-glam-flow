@@ -546,10 +546,45 @@ function PaymentFlow({
   selected: Plan;
   onClose: () => void;
 }) {
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const STEP_KEY = "nex_funnel_step_v1";
+  const PAID_KEY = "nex_funnel_paid_v1";
+  const RECEIPT_KEY = "nex_funnel_receipt_v1";
+  const [step, setStep] = useState<1 | 2 | 3>(() => {
+    if (typeof window === "undefined") return 1;
+    const s = Number(sessionStorage.getItem(STEP_KEY));
+    return s === 2 || s === 3 ? (s as 2 | 3) : 1;
+  });
+  const [paidClicked, setPaidClicked] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return sessionStorage.getItem(PAID_KEY) === "1";
+  });
+  const [receipt, setReceipt] = useState<{ name: string; size: number; dataUrl: string } | null>(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const raw = localStorage.getItem(RECEIPT_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [receiptError, setReceiptError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(PAYMENT_WINDOW_SECONDS);
   const [expired, setExpired] = useState(false);
+
+  // Persist step & paid state
+  useEffect(() => {
+    try { sessionStorage.setItem(STEP_KEY, String(step)); } catch { /* noop */ }
+  }, [step]);
+  useEffect(() => {
+    try { sessionStorage.setItem(PAID_KEY, paidClicked ? "1" : "0"); } catch { /* noop */ }
+  }, [paidClicked]);
+  useEffect(() => {
+    try {
+      if (receipt) localStorage.setItem(RECEIPT_KEY, JSON.stringify(receipt));
+      else localStorage.removeItem(RECEIPT_KEY);
+    } catch { /* noop */ }
+  }, [receipt]);
 
   // Mercado Pago checkout link for the chosen plan
   const paymentLink = selected.paymentLink;
@@ -655,7 +690,38 @@ function PaymentFlow({
   const update = <K extends keyof LeadForm>(k: K, v: LeadForm[K]) =>
     setForm((f) => ({ ...f, [k]: v }));
 
-  const formValid = form.salon.trim().length > 1 && form.whatsapp.trim().length >= 8;
+  const formFieldsValid = form.salon.trim().length > 1 && form.whatsapp.trim().length >= 8;
+  const formValid = formFieldsValid && !!receipt;
+
+  const onReceiptFile = (file: File | null) => {
+    setReceiptError(null);
+    if (!file) return;
+    const okTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp", "application/pdf"];
+    if (!okTypes.includes(file.type)) {
+      setReceiptError("Formato inválido. Envie JPG, PNG, WEBP ou PDF.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setReceiptError("Arquivo grande demais. Máximo 5MB.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setReceipt({ name: file.name, size: file.size, dataUrl: String(reader.result) });
+    };
+    reader.onerror = () => setReceiptError("Não foi possível ler o arquivo. Tente outro.");
+    reader.readAsDataURL(file);
+  };
+
+  const downloadReceipt = () => {
+    if (!receipt) return;
+    const a = document.createElement("a");
+    a.href = receipt.dataUrl;
+    a.download = receipt.name || "comprovante";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
 
   const buildWaMessage = () =>
     [
@@ -674,7 +740,7 @@ function PaymentFlow({
       `*Promoção Dia dos Namorados:*`,
       form.promo || "-",
       ``,
-      `Vou enviar o comprovante PIX em seguida.`,
+      `Vou anexar o comprovante do pagamento nesta conversa em seguida.`,
     ].join("\n");
 
   return (
@@ -825,13 +891,25 @@ function PaymentFlow({
                       Você será direcionado ao <span className="font-semibold">Mercado Pago</span> com o valor do sinal já preenchido ({selected.deposit}).
                       Pague por PIX, cartão ou saldo Mercado Pago.
                     </p>
+
+                    {paidClicked && (
+                      <div className="mt-3 rounded-xl border border-amber-500/40 bg-amber-50 p-3 text-[12px] leading-relaxed text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+                        <p className="font-semibold">⚠️ Você já abriu o pagamento.</p>
+                        <p className="mt-1">
+                          Se o PIX/cartão foi confirmado, <strong>NÃO pague de novo</strong>.
+                          Avance para o próximo passo e nos envie o comprovante.
+                        </p>
+                      </div>
+                    )}
+
                     <a
                       href={paymentLink}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={() => setPaidClicked(true)}
                       className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#009ee3] px-6 py-4 text-sm font-semibold text-white transition-transform active:scale-[0.98] hover:bg-[#008fcf]"
                     >
-                      Pagar {selected.deposit} no Mercado Pago →
+                      {paidClicked ? `Reabrir pagamento (${selected.deposit})` : `Pagar ${selected.deposit} no Mercado Pago →`}
                     </a>
                     <button
                       onClick={copyLink}
@@ -839,6 +917,10 @@ function PaymentFlow({
                     >
                       {copied ? "✓ Link copiado" : "Copiar link de pagamento"}
                     </button>
+                    <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
+                      Ao voltar para este site, sua reserva continuará exatamente neste passo —
+                      você não precisa começar do zero.
+                    </p>
                   </div>
 
                   {/* Titular destaque — confiança */}
@@ -901,10 +983,21 @@ function PaymentFlow({
           {step === 3 && (
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
               <p className="eyebrow">Etapa 03 · Seus dados</p>
-              <h3 className="mt-3 text-2xl font-semibold tracking-tight">Quase pronto — só faltam seus dados.</h3>
+              <h3 className="mt-3 text-2xl font-semibold tracking-tight">Quase pronto — só faltam seus dados e o comprovante.</h3>
               <p className="mt-2 text-sm text-muted-foreground">
-                Preencha abaixo e enviamos tudo direto para o WhatsApp já formatado. Suas informações ficam salvas — se sair sem querer, voltam preenchidas.
+                Preencha abaixo, anexe o comprovante do pagamento e enviamos tudo direto para o WhatsApp já formatado.
+                Suas informações ficam salvas — se sair sem querer, voltam preenchidas.
               </p>
+
+              {/* Aviso anti-duplicidade */}
+              <div className="mt-4 rounded-xl border border-amber-500/40 bg-amber-50 p-3 text-[12px] leading-relaxed text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+                <p className="font-semibold">Importante — evite pagamento duplicado:</p>
+                <ul className="mt-1 list-disc space-y-0.5 pl-4">
+                  <li>Pague o sinal <strong>uma única vez</strong>. Se já apareceu “pagamento aprovado”, está pago.</li>
+                  <li>Em caso de dúvida, <strong>não pague de novo</strong> — fale com a gente pelo WhatsApp.</li>
+                  <li>Sua reserva só é confirmada após o envio do comprovante abaixo.</li>
+                </ul>
+              </div>
 
               <div className="mt-5 space-y-3">
                 <Field label="Nome do salão *" value={form.salon} onChange={(v) => update("salon", v)} placeholder="Ex: Studio Bella" />
@@ -914,6 +1007,76 @@ function PaymentFlow({
                 <Field label="Endereço em Macaé" value={form.address} onChange={(v) => update("address", v)} placeholder="Bairro / rua" />
                 <FieldArea label="Principais serviços" value={form.services} onChange={(v) => update("services", v)} placeholder="Ex: progressiva, manicure, design de sobrancelha…" />
                 <FieldArea label="Promoção do Dia dos Namorados" value={form.promo} onChange={(v) => update("promo", v)} placeholder="Ex: pacote casal por R$ 199, válido até 12/06" />
+              </div>
+
+              {/* Upload do comprovante */}
+              <div className="mt-5 rounded-2xl border-2 border-dashed border-foreground/30 bg-surface p-4">
+                <p className="text-[11px] uppercase tracking-widest text-muted-foreground">Comprovante do pagamento *</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Anexe a foto/print do comprovante (JPG, PNG, WEBP ou PDF, até 5MB). É obrigatório para liberar o envio.
+                </p>
+
+                {!receipt ? (
+                  <label className="mt-3 flex w-full cursor-pointer items-center justify-center gap-2 rounded-full border hairline bg-background px-5 py-3 text-sm font-medium text-foreground hover:bg-surface">
+                    <span>📎 Anexar comprovante</span>
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp,application/pdf"
+                      className="hidden"
+                      onChange={(e) => onReceiptFile(e.target.files?.[0] ?? null)}
+                    />
+                  </label>
+                ) : (
+                  <div className="mt-3">
+                    {receipt.dataUrl.startsWith("data:image") ? (
+                      <img
+                        src={receipt.dataUrl}
+                        alt="Pré-visualização do comprovante"
+                        className="max-h-56 w-full rounded-xl border hairline object-contain bg-background"
+                      />
+                    ) : (
+                      <div className="rounded-xl border hairline bg-background p-4 text-center text-xs text-muted-foreground">
+                        📄 PDF anexado — {receipt.name}
+                      </div>
+                    )}
+                    <div className="mt-2 flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
+                      <span className="truncate">✓ {receipt.name} ({(receipt.size / 1024).toFixed(0)} KB)</span>
+                      <div className="flex gap-2">
+                        <label className="cursor-pointer rounded-full border hairline px-3 py-1 hover:text-foreground">
+                          Trocar
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp,application/pdf"
+                            className="hidden"
+                            onChange={(e) => onReceiptFile(e.target.files?.[0] ?? null)}
+                          />
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setReceipt(null)}
+                          className="rounded-full border hairline px-3 py-1 hover:text-foreground"
+                        >
+                          Remover
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {receiptError && (
+                  <p className="mt-2 text-[11px] font-medium text-destructive">{receiptError}</p>
+                )}
+
+                {receipt && (
+                  <div className="mt-3 rounded-xl bg-background p-3 text-[12px] leading-relaxed text-muted-foreground ring-inset-hairline">
+                    <p className="font-semibold text-foreground">Próximo passo (atenção):</p>
+                    <ol className="mt-1 list-decimal space-y-0.5 pl-4">
+                      <li>Clique em <strong>“Enviar tudo no WhatsApp”</strong> — a mensagem abre pronta.</li>
+                      <li>Na conversa do WhatsApp, <strong>anexe o comprovante</strong> que você acabou de subir aqui (📎 anexo no WhatsApp).</li>
+                      <li>Se preferir, <button type="button" onClick={downloadReceipt} className="underline underline-offset-2 hover:text-foreground">baixe novamente o comprovante</button> antes de anexar.</li>
+                    </ol>
+                  </div>
+                )}
               </div>
 
               <div className="mt-5 rounded-2xl bg-surface p-4 ring-inset-hairline">
@@ -939,7 +1102,11 @@ function PaymentFlow({
                       : "cursor-not-allowed bg-surface text-muted-foreground ring-inset-hairline"
                   }`}
                 >
-                  Enviar tudo no WhatsApp →
+                  {formValid
+                    ? "Continuar — enviar no WhatsApp →"
+                    : !formFieldsValid
+                      ? "Preencha salão e WhatsApp para continuar"
+                      : "Anexe o comprovante para continuar"}
                 </a>
                 <button
                   onClick={() => setStep(2)}
@@ -1214,10 +1381,41 @@ function StickyMobileBar() {
 
 /* ---------- Page ---------- */
 
+const FUNNEL_STATE_KEY = "nex_funnel_state_v1";
+
 function LandingPage() {
   const [selectedId, setSelectedId] = useState<string>("plus");
   const [paymentOpen, setPaymentOpen] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
   const selected = PLANS.find((p) => p.id === selectedId) ?? PLANS[1];
+
+  // Restore funnel state on mount (so returning from Mercado Pago lands on the same screen)
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(FUNNEL_STATE_KEY);
+      if (raw) {
+        const s = JSON.parse(raw) as { open?: boolean; planId?: string };
+        if (s.planId) setSelectedId(s.planId);
+        if (s.open) setPaymentOpen(true);
+      }
+    } catch {
+      /* noop */
+    }
+    setHydrated(true);
+  }, []);
+
+  // Persist funnel state
+  useEffect(() => {
+    if (!hydrated) return;
+    try {
+      sessionStorage.setItem(
+        FUNNEL_STATE_KEY,
+        JSON.stringify({ open: paymentOpen, planId: selectedId }),
+      );
+    } catch {
+      /* noop */
+    }
+  }, [paymentOpen, selectedId, hydrated]);
 
   useEffect(() => {
     const handler = () => setPaymentOpen(true);
