@@ -261,7 +261,7 @@ function Hero() {
             <li className="inline-flex items-center gap-1.5"><LockIcon /> Pagamento via Mercado Pago</li>
             <li className="inline-flex items-center gap-1.5"><LockIcon /> Reserva por sinal PIX</li>
             <li className="inline-flex items-center gap-1.5"><LockIcon /> CNPJ ativo · Macaé/RJ</li>
-            <li className="inline-flex items-center gap-1.5"><LockIcon /> Entrega garantida em 7 dias</li>
+            <li className="inline-flex items-center gap-1.5"><LockIcon /> Entrega garantida em 2 dias</li>
           </ul>
         </FadeIn>
 
