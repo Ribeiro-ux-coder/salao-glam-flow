@@ -15,27 +15,32 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Página profissional, mobile-first e otimizada para conversão. Mais agendamentos, mais clientes no WhatsApp e mais vendas no Dia dos Namorados. Vagas limitadas para salões em Macaé.",
+          "Página profissional, mobile-first e otimizada para conversão. Entrega em até 2 dias. Mais agendamentos e clientes no WhatsApp. Vagas limitadas para salões em Macaé.",
       },
       { property: "og:title", content: "Nex0s — Páginas Premium para Salões em Macaé" },
       {
         property: "og:description",
         content:
-          "Página promocional profissional para salões de beleza venderem mais no Dia dos Namorados. Atendimento exclusivo em Macaé.",
+          "Página promocional profissional para salões de beleza. Entrega em até 2 dias. Atendimento exclusivo em Macaé.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "theme-color", content: "#000000" },
+      { name: "referrer", content: "strict-origin-when-cross-origin" },
     ],
-    links: [{ rel: "canonical", href: "/" }],
+    links: [
+      { rel: "canonical", href: "/" },
+      { rel: "preload", as: "image", href: salonHero, fetchpriority: "high" },
+    ],
   }),
   component: LandingPage,
 });
 
+
 /* ---------- Constants ---------- */
 
 const WHATSAPP_NUMBER = "5522974005878";
-const PIX_KEY = "sitesnex@gmail.com";
+
 const PIX_HOLDER = "Nicoly Vera Cruz da Conceição";
 const PIX_DOC = "CPF cadastrado · Macaé/RJ";
 const PIX_BANK = "Mercado Pago";
@@ -144,50 +149,8 @@ function ReserveButton({
   );
 }
 
-/* ---------- PIX BR Code (EMV) ---------- */
-
-const PIX_MERCHANT_NAME = "NICOLY VERA CRUZ DA CONCEICAO";
-const PIX_MERCHANT_CITY = "MACAE";
-
-function emv(id: string, value: string) {
-  const len = value.length.toString().padStart(2, "0");
-  return `${id}${len}${value}`;
-}
-
-function crc16(payload: string) {
-  let crc = 0xffff;
-  for (let i = 0; i < payload.length; i++) {
-    crc ^= payload.charCodeAt(i) << 8;
-    for (let j = 0; j < 8; j++) {
-      crc = (crc & 0x8000) ? (crc << 1) ^ 0x1021 : crc << 1;
-      crc &= 0xffff;
-    }
-  }
-  return crc.toString(16).toUpperCase().padStart(4, "0");
-}
-
-function buildPixPayload(amount: number, txid = "NEX" + Date.now().toString().slice(-8)) {
-  const gui = emv("00", "br.gov.bcb.pix");
-  const key = emv("01", PIX_KEY);
-  const mai = emv("26", gui + key);
-  const cleanTx = txid.replace(/[^A-Za-z0-9]/g, "").slice(0, 25) || "***";
-  const additional = emv("62", emv("05", cleanTx));
-  const amountStr = amount.toFixed(2);
-  const partial =
-    emv("00", "01") +
-    mai +
-    emv("52", "0000") +
-    emv("53", "986") +
-    emv("54", amountStr) +
-    emv("58", "BR") +
-    emv("59", PIX_MERCHANT_NAME.slice(0, 25)) +
-    emv("60", PIX_MERCHANT_CITY.slice(0, 15)) +
-    additional +
-    "6304";
-  return partial + crc16(partial);
-}
-
 /* ---------- Primitives ---------- */
+
 
 function FadeIn({ children, delay = 0 }: { children: ReactNode; delay?: number }) {
   const reduce = useReducedMotion();
@@ -298,7 +261,7 @@ function Hero() {
             <li className="inline-flex items-center gap-1.5"><LockIcon /> Pagamento via Mercado Pago</li>
             <li className="inline-flex items-center gap-1.5"><LockIcon /> Reserva por sinal PIX</li>
             <li className="inline-flex items-center gap-1.5"><LockIcon /> CNPJ ativo · Macaé/RJ</li>
-            <li className="inline-flex items-center gap-1.5"><LockIcon /> Entrega garantida em 7 dias</li>
+            <li className="inline-flex items-center gap-1.5"><LockIcon /> Entrega garantida em 2 dias</li>
           </ul>
         </FadeIn>
 
@@ -306,7 +269,7 @@ function Hero() {
           <dl className="mt-12 grid grid-cols-3 gap-4 border-t hairline pt-6 max-w-xl">
             <div>
               <dt className="text-[10px] uppercase tracking-widest text-muted-foreground">Entrega</dt>
-              <dd className="mt-1 text-lg font-medium tracking-tight">7 dias</dd>
+              <dd className="mt-1 text-lg font-medium tracking-tight">2 dias</dd>
             </div>
             <div>
               <dt className="text-[10px] uppercase tracking-widest text-muted-foreground">Foco</dt>
@@ -326,6 +289,9 @@ function Hero() {
               alt="Salão de beleza minimalista premium"
               width={1280}
               height={1600}
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
               className="aspect-[4/5] sm:aspect-[16/9] w-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0" />
@@ -409,6 +375,7 @@ function Mockups() {
                 width={1024}
                 height={1280}
                 loading="lazy"
+                decoding="async"
                 className="w-full rounded-2xl object-cover"
               />
             </div>
@@ -982,8 +949,10 @@ function PaymentFlow({
                 </button>
               </div>
 
-              <p className="mt-4 text-center text-[11px] text-muted-foreground">
-                <LockIcon /> Seus dados ficam apenas no seu aparelho até você enviar · Atendimento: 22 97400-5878
+              <p className="mt-4 text-center text-[11px] leading-relaxed text-muted-foreground">
+                <LockIcon /> Conforme a LGPD (Lei 13.709/18), seus dados ficam salvos apenas neste aparelho e são usados somente para a execução do projeto contratado.{" "}
+                <Link to="/termos" className="underline underline-offset-2 hover:text-foreground">Ver Termos e Privacidade</Link>{" "}
+                · Atendimento: (22) 97400-5878
               </p>
             </motion.div>
           )}
@@ -1008,7 +977,7 @@ const STEPS = [
   { t: "Pague o sinal via PIX", d: "Reserva sua vaga na fila de produção." },
   { t: "Envie comprovante + fotos", d: "Tudo direto pelo WhatsApp." },
   { t: "Projeto entra na fila", d: "Acompanhamento próximo durante a produção." },
-  { t: "Prévia em até 7 dias", d: "Versão funcional para sua aprovação." },
+  { t: "Prévia em até 2 dias", d: "Versão funcional para sua aprovação." },
   { t: "Pague o restante", d: "Sinal descontado do valor total." },
   { t: "Página final liberada", d: "Pronta para anúncios e Instagram." },
 ];
@@ -1077,7 +1046,7 @@ function SocialProof() {
 
         <FadeIn delay={0.2}>
           <div className="mt-12 flex flex-col items-center gap-4 rounded-2xl border hairline bg-background p-6 sm:flex-row sm:gap-6">
-            <img src={founderPhoto} alt="Fundador Nex0s" className="h-16 w-16 rounded-full object-cover ring-inset-hairline" />
+            <img src={founderPhoto} alt="Fundador Nex0s" width={64} height={64} loading="lazy" decoding="async" className="h-16 w-16 rounded-full object-cover ring-inset-hairline" />
             <div className="text-center sm:text-left">
               <p className="text-xs uppercase tracking-widest text-muted-foreground">Atendimento direto</p>
               <p className="mt-1 text-sm">Estúdio Nex0s · Páginas premium feitas para salões de Macaé.</p>
@@ -1128,7 +1097,7 @@ function Urgency() {
 /* ---------- FAQ ---------- */
 
 const FAQ = [
-  { q: "Qual o prazo de entrega?", a: "A prévia funcional é enviada em até 7 dias após confirmação do formulário e do sinal. A versão final é liberada após a aprovação e o pagamento restante." },
+  { q: "Qual o prazo de entrega?", a: "A prévia funcional é enviada em até 2 dias após confirmação do formulário e do sinal. A versão final é liberada após a aprovação e o pagamento restante." },
   { q: "Como funciona o pagamento?", a: "Você paga o sinal via PIX (Mercado Pago) para reservar sua vaga. O valor do sinal é descontado do valor total. O restante é pago após aprovação da prévia." },
   { q: "Posso personalizar a página?", a: "Sim. Cada plano inclui um número de alterações após o envio da prévia. Plus permite até 3 e Avançado até 5." },
   { q: "Como envio as fotos do meu salão?", a: "Todas as fotos e materiais devem ser enviados diretamente pelo WhatsApp, junto com o comprovante do sinal." },

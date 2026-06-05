@@ -41,7 +41,7 @@ const SECTIONS: Array<{ title: string; body: string | string[] }> = [
   {
     title: "4. Prazo de entrega",
     body:
-      "A prévia funcional é enviada em até 7 dias corridos após a confirmação do pagamento do sinal e do recebimento das informações e fotos do salão. A versão final é liberada após a aprovação da prévia e o pagamento do valor restante.",
+      "A prévia funcional é enviada em até 2 dias corridos após a confirmação do pagamento do sinal e do recebimento das informações e fotos do salão. A versão final é liberada após a aprovação da prévia e o pagamento do valor restante.",
   },
   {
     title: "5. Alterações e revisões",
@@ -69,9 +69,12 @@ const SECTIONS: Array<{ title: string; body: string | string[] }> = [
       "O suporte é realizado via WhatsApp para dúvidas e ajustes dentro do limite do plano contratado, durante 30 dias após a entrega final.",
   },
   {
-    title: "10. Privacidade",
-    body:
-      "Os dados informados pelo cliente são utilizados apenas para a execução do projeto e contato. Não compartilhamos dados com terceiros. Pagamentos são processados pelo Mercado Pago, conforme a política de privacidade da plataforma.",
+    title: "10. Privacidade e LGPD",
+    body: [
+      "Em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018), os dados informados pelo cliente (nome, WhatsApp, e-mail, endereço, fotos e textos do salão) são tratados exclusivamente para a execução do projeto contratado, comunicação e cumprimento de obrigações legais. A base legal é a execução de contrato e o consentimento do titular.",
+      "Os dados preenchidos no formulário ficam armazenados localmente no aparelho do cliente (localStorage) até o envio para o nosso WhatsApp. Não compartilhamos dados com terceiros, exceto com o Mercado Pago para processamento de pagamento, conforme a política da própria plataforma.",
+      "O cliente pode, a qualquer momento, solicitar acesso, correção, portabilidade, anonimização ou exclusão dos seus dados pelo WhatsApp (22) 97400-5878. Os dados são mantidos pelo tempo necessário para a prestação do serviço e cumprimento de obrigações fiscais.",
+    ],
   },
   {
     title: "11. Alterações destes Termos",
