@@ -1102,7 +1102,11 @@ function PaymentFlow({
                       : "cursor-not-allowed bg-surface text-muted-foreground ring-inset-hairline"
                   }`}
                 >
-                  Enviar tudo no WhatsApp →
+                  {formValid
+                    ? "Continuar — enviar no WhatsApp →"
+                    : !formFieldsValid
+                      ? "Preencha salão e WhatsApp para continuar"
+                      : "Anexe o comprovante para continuar"}
                 </a>
                 <button
                   onClick={() => setStep(2)}
