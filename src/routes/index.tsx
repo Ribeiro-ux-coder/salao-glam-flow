@@ -15,22 +15,27 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Página profissional, mobile-first e otimizada para conversão. Mais agendamentos, mais clientes no WhatsApp e mais vendas no Dia dos Namorados. Vagas limitadas para salões em Macaé.",
+          "Página profissional, mobile-first e otimizada para conversão. Entrega em até 2 dias. Mais agendamentos e clientes no WhatsApp. Vagas limitadas para salões em Macaé.",
       },
       { property: "og:title", content: "Nex0s — Páginas Premium para Salões em Macaé" },
       {
         property: "og:description",
         content:
-          "Página promocional profissional para salões de beleza venderem mais no Dia dos Namorados. Atendimento exclusivo em Macaé.",
+          "Página promocional profissional para salões de beleza. Entrega em até 2 dias. Atendimento exclusivo em Macaé.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "theme-color", content: "#000000" },
+      { name: "referrer", content: "strict-origin-when-cross-origin" },
     ],
-    links: [{ rel: "canonical", href: "/" }],
+    links: [
+      { rel: "canonical", href: "/" },
+      { rel: "preload", as: "image", href: salonHero, fetchpriority: "high" },
+    ],
   }),
   component: LandingPage,
 });
+
 
 /* ---------- Constants ---------- */
 
