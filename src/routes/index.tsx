@@ -690,7 +690,38 @@ function PaymentFlow({
   const update = <K extends keyof LeadForm>(k: K, v: LeadForm[K]) =>
     setForm((f) => ({ ...f, [k]: v }));
 
-  const formValid = form.salon.trim().length > 1 && form.whatsapp.trim().length >= 8;
+  const formFieldsValid = form.salon.trim().length > 1 && form.whatsapp.trim().length >= 8;
+  const formValid = formFieldsValid && !!receipt;
+
+  const onReceiptFile = (file: File | null) => {
+    setReceiptError(null);
+    if (!file) return;
+    const okTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp", "application/pdf"];
+    if (!okTypes.includes(file.type)) {
+      setReceiptError("Formato inválido. Envie JPG, PNG, WEBP ou PDF.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setReceiptError("Arquivo grande demais. Máximo 5MB.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setReceipt({ name: file.name, size: file.size, dataUrl: String(reader.result) });
+    };
+    reader.onerror = () => setReceiptError("Não foi possível ler o arquivo. Tente outro.");
+    reader.readAsDataURL(file);
+  };
+
+  const downloadReceipt = () => {
+    if (!receipt) return;
+    const a = document.createElement("a");
+    a.href = receipt.dataUrl;
+    a.download = receipt.name || "comprovante";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
 
   const buildWaMessage = () =>
     [
