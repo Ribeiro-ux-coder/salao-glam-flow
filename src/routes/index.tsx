@@ -740,7 +740,7 @@ function PaymentFlow({
       `*Promoção Dia dos Namorados:*`,
       form.promo || "-",
       ``,
-      `Vou enviar o comprovante PIX em seguida.`,
+      `Vou anexar o comprovante do pagamento nesta conversa em seguida.`,
     ].join("\n");
 
   return (
