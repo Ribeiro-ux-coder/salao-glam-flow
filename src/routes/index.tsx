@@ -949,8 +949,10 @@ function PaymentFlow({
                 </button>
               </div>
 
-              <p className="mt-4 text-center text-[11px] text-muted-foreground">
-                <LockIcon /> Seus dados ficam apenas no seu aparelho até você enviar · Atendimento: 22 97400-5878
+              <p className="mt-4 text-center text-[11px] leading-relaxed text-muted-foreground">
+                <LockIcon /> Conforme a LGPD (Lei 13.709/18), seus dados ficam salvos apenas neste aparelho e são usados somente para a execução do projeto contratado.{" "}
+                <Link to="/termos" className="underline underline-offset-2 hover:text-foreground">Ver Termos e Privacidade</Link>{" "}
+                · Atendimento: (22) 97400-5878
               </p>
             </motion.div>
           )}
