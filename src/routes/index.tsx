@@ -546,10 +546,45 @@ function PaymentFlow({
   selected: Plan;
   onClose: () => void;
 }) {
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const STEP_KEY = "nex_funnel_step_v1";
+  const PAID_KEY = "nex_funnel_paid_v1";
+  const RECEIPT_KEY = "nex_funnel_receipt_v1";
+  const [step, setStep] = useState<1 | 2 | 3>(() => {
+    if (typeof window === "undefined") return 1;
+    const s = Number(sessionStorage.getItem(STEP_KEY));
+    return s === 2 || s === 3 ? (s as 2 | 3) : 1;
+  });
+  const [paidClicked, setPaidClicked] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return sessionStorage.getItem(PAID_KEY) === "1";
+  });
+  const [receipt, setReceipt] = useState<{ name: string; size: number; dataUrl: string } | null>(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const raw = localStorage.getItem(RECEIPT_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [receiptError, setReceiptError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(PAYMENT_WINDOW_SECONDS);
   const [expired, setExpired] = useState(false);
+
+  // Persist step & paid state
+  useEffect(() => {
+    try { sessionStorage.setItem(STEP_KEY, String(step)); } catch { /* noop */ }
+  }, [step]);
+  useEffect(() => {
+    try { sessionStorage.setItem(PAID_KEY, paidClicked ? "1" : "0"); } catch { /* noop */ }
+  }, [paidClicked]);
+  useEffect(() => {
+    try {
+      if (receipt) localStorage.setItem(RECEIPT_KEY, JSON.stringify(receipt));
+      else localStorage.removeItem(RECEIPT_KEY);
+    } catch { /* noop */ }
+  }, [receipt]);
 
   // Mercado Pago checkout link for the chosen plan
   const paymentLink = selected.paymentLink;
