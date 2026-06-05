@@ -1091,7 +1091,7 @@ function Urgency() {
 /* ---------- FAQ ---------- */
 
 const FAQ = [
-  { q: "Qual o prazo de entrega?", a: "A prévia funcional é enviada em até 7 dias após confirmação do formulário e do sinal. A versão final é liberada após a aprovação e o pagamento restante." },
+  { q: "Qual o prazo de entrega?", a: "A prévia funcional é enviada em até 2 dias após confirmação do formulário e do sinal. A versão final é liberada após a aprovação e o pagamento restante." },
   { q: "Como funciona o pagamento?", a: "Você paga o sinal via PIX (Mercado Pago) para reservar sua vaga. O valor do sinal é descontado do valor total. O restante é pago após aprovação da prévia." },
   { q: "Posso personalizar a página?", a: "Sim. Cada plano inclui um número de alterações após o envio da prévia. Plus permite até 3 e Avançado até 5." },
   { q: "Como envio as fotos do meu salão?", a: "Todas as fotos e materiais devem ser enviados diretamente pelo WhatsApp, junto com o comprovante do sinal." },
