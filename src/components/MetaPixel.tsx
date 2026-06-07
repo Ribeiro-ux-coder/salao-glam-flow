@@ -8,7 +8,7 @@ export function MetaPixel() {
     const w = window as any;
     if (w.fbq) return;
 
-    const n = (w.fbq = function () {
+    const n: any = (w.fbq = function () {
       n.callMethod
         ? n.callMethod.apply(n, arguments)
         : n.queue.push(arguments);
