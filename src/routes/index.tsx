@@ -1094,7 +1094,17 @@ function PaymentFlow({
                   rel="noopener noreferrer"
                   aria-disabled={!formValid}
                   onClick={(e) => {
-                    if (!formValid) e.preventDefault();
+                    if (!formValid) {
+                      e.preventDefault();
+                      return;
+                    }
+                    // Facebook Pixel Purchase event
+                    if (typeof window !== "undefined" && (window as any).fbq) {
+                      (window as any).fbq("track", "Purchase", {
+                        value: selected.depositValue,
+                        currency: "BRL",
+                      });
+                    }
                   }}
                   className={`inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-4 text-sm font-semibold transition-transform active:scale-[0.98] ${
                     formValid
