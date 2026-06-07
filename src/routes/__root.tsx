@@ -107,6 +107,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         {children}
+        <MetaPixel />
         <Scripts />
       </body>
     </html>
