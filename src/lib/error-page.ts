@@ -17,6 +17,11 @@ export function renderErrorPage(): string {
     </style>
   </head>
   <body>
+    <script>
+  fbq('track', 'Purchase', {
+    value: 50,
+  });
+    </script>
     <div class="card">
       <h1>This page didn't load</h1>
       <p>Something went wrong on our end. You can try refreshing or head back home.</p>
