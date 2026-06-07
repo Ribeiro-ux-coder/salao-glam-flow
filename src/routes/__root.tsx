@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
+import { MetaPixel } from "@/components/MetaPixel";
 
 function NotFoundComponent() {
   return (
@@ -106,6 +107,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         {children}
+        <MetaPixel />
         <Scripts />
       </body>
     </html>
