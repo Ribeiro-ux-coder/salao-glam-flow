@@ -104,10 +104,10 @@ function RootShell({ children }: { children: React.ReactNode }) {
     <html lang="en">
       <head>
         <HeadContent />
+        <MetaPixel />
       </head>
       <body>
         {children}
-        <MetaPixel />
         <Scripts />
       </body>
     </html>
