@@ -69,7 +69,17 @@ const SECTIONS: Array<{ title: string; body: string | string[] }> = [
       "O suporte é realizado via WhatsApp para dúvidas e ajustes dentro do limite do plano contratado, durante 30 dias após a entrega final.",
   },
   {
-    title: "10. Privacidade e LGPD",
+    title: "10. Manutenção mensal (opcional)",
+    body: [
+      "A Nex0s oferece um serviço de manutenção mensal OPCIONAL, no valor de R$ 79,90 por mês, que inclui atualizações de promoções, banners, textos, fotos, pequenos ajustes no site e suporte prioritário via WhatsApp.",
+      "A contratação da manutenção é totalmente independente do plano de criação. O cliente pode optar por contratar ou não, no ato da reserva ou em qualquer momento posterior, pelo WhatsApp oficial.",
+      "A manutenção SÓ É MANTIDA mediante o pagamento mensal na data combinada e confirmada via WhatsApp. Em caso de NÃO PAGAMENTO na data acordada, o cliente PERDE AUTOMATICAMENTE o acesso ao serviço de manutenção, incluindo atualizações pendentes, ajustes e suporte prioritário.",
+      "Não há fidelidade nem multa: o cliente pode cancelar a manutenção a qualquer momento avisando pelo WhatsApp, sem cobrança adicional. O cancelamento encerra o serviço a partir do mês seguinte ao último pagamento confirmado.",
+      "O serviço de manutenção não inclui reestruturação completa do site, mudança de plano, criação de novas páginas ou funcionalidades — esses itens são orçados à parte.",
+    ],
+  },
+  {
+    title: "11. Privacidade e LGPD",
     body: [
       "Em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018), os dados informados pelo cliente (nome, WhatsApp, e-mail, endereço, fotos e textos do salão) são tratados exclusivamente para a execução do projeto contratado, comunicação e cumprimento de obrigações legais. A base legal é a execução de contrato e o consentimento do titular.",
       "Os dados preenchidos no formulário ficam armazenados localmente no aparelho do cliente (localStorage) até o envio para o nosso WhatsApp. Não compartilhamos dados com terceiros, exceto com o Mercado Pago para processamento de pagamento, conforme a política da própria plataforma.",
@@ -77,12 +87,12 @@ const SECTIONS: Array<{ title: string; body: string | string[] }> = [
     ],
   },
   {
-    title: "11. Alterações destes Termos",
+    title: "12. Alterações destes Termos",
     body:
       "Estes Termos podem ser atualizados a qualquer momento. A versão vigente é sempre a publicada nesta página.",
   },
   {
-    title: "12. Foro",
+    title: "13. Foro",
     body:
       "Fica eleito o foro da Comarca de Macaé/RJ para dirimir quaisquer dúvidas oriundas destes Termos.",
   },

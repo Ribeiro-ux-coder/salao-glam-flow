@@ -107,6 +107,11 @@ const PLANS = [
   },
 ] as const;
 
+const MAINTENANCE = {
+  price: "R$ 79,90",
+  priceValue: 79.9,
+  period: "por mês",
+} as const;
 
 type Plan = (typeof PLANS)[number];
 
@@ -460,6 +465,44 @@ function Plans({ onChoose }: { onChoose: (p: Plan) => void }) {
         <p className="mt-8 text-center text-xs text-muted-foreground">
           Valor do sinal sempre descontado do total. Reserva confirmada após envio do comprovante.
         </p>
+
+        {/* Manutenção opcional */}
+        <FadeIn delay={0.1}>
+          <div className="mt-12 rounded-2xl border-2 border-dashed hairline bg-surface p-6 sm:p-8">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <span className="inline-block rounded-full bg-foreground px-2.5 py-1 text-[10px] uppercase tracking-widest text-background">
+                  Opcional
+                </span>
+                <h3 className="mt-3 text-xl font-semibold tracking-tight sm:text-2xl">
+                  Manutenção mensal
+                </h3>
+                <p className="mt-2 max-w-xl text-sm text-muted-foreground">
+                  Atualizações de promoções, banners, textos, fotos e pequenos ajustes
+                  no seu site. Suporte prioritário via WhatsApp.
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-3xl font-semibold tracking-tight">{MAINTENANCE.price}</p>
+                <p className="text-xs text-muted-foreground">{MAINTENANCE.period}</p>
+              </div>
+            </div>
+
+            <div className="mt-5 rounded-xl border border-amber-500/40 bg-amber-50 p-4 text-[12px] leading-relaxed text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+              <p className="font-semibold">⚠️ Importante — leia antes de contratar:</p>
+              <ul className="mt-2 list-disc space-y-1 pl-4">
+                <li>A manutenção é <strong>totalmente opcional</strong> e independente do plano de criação.</li>
+                <li>O serviço só é mantido <strong>conforme o pagamento mensal</strong>, na data combinada e confirmada via WhatsApp.</li>
+                <li>Em caso de <strong>não pagamento</strong> na data, o cliente <strong>perde o acesso à manutenção</strong> automaticamente (ajustes, suporte prioritário e atualizações).</li>
+                <li>Não há fidelidade: o cliente pode cancelar a qualquer momento avisando pelo WhatsApp.</li>
+              </ul>
+            </div>
+
+            <p className="mt-4 text-[11px] text-muted-foreground">
+              Você pode adicionar a manutenção no momento da reserva ou depois, pelo WhatsApp.
+            </p>
+          </div>
+        </FadeIn>
       </div>
     </section>
   );
@@ -571,6 +614,14 @@ function PaymentFlow({
   const [copied, setCopied] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(PAYMENT_WINDOW_SECONDS);
   const [expired, setExpired] = useState(false);
+  const MAINT_KEY = "nex_funnel_maint_v1";
+  const [wantsMaintenance, setWantsMaintenance] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem(MAINT_KEY) === "1";
+  });
+  useEffect(() => {
+    try { localStorage.setItem(MAINT_KEY, wantsMaintenance ? "1" : "0"); } catch { /* noop */ }
+  }, [wantsMaintenance]);
 
   // Persist step & paid state
   useEffect(() => {
@@ -740,6 +791,8 @@ function PaymentFlow({
       `*Promoção Dia dos Namorados:*`,
       form.promo || "-",
       ``,
+      `*Manutenção mensal (${MAINTENANCE.price}/mês):* ${wantsMaintenance ? "SIM — quero contratar. Ciente de que só é mantida com o pagamento na data combinada via WhatsApp e que, em caso de não pagamento, perco o acesso." : "Não, por enquanto não."}`,
+      ``,
       `Vou anexar o comprovante do pagamento nesta conversa em seguida.`,
     ].join("\n");
 
@@ -829,6 +882,36 @@ function PaymentFlow({
                 <li className="flex items-center gap-2"><LockIcon /> Reserva confirmada por ordem de pagamento</li>
                 <li className="flex items-center gap-2"><LockIcon /> Sem cobrança recorrente</li>
               </ul>
+
+              {/* Manutenção opcional */}
+              <label
+                htmlFor="opt-maintenance"
+                className={`mt-5 flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition-colors ${
+                  wantsMaintenance ? "border-foreground bg-surface" : "hairline bg-background"
+                }`}
+              >
+                <input
+                  id="opt-maintenance"
+                  type="checkbox"
+                  checked={wantsMaintenance}
+                  onChange={(e) => setWantsMaintenance(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 accent-foreground"
+                />
+                <div className="flex-1">
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <span className="text-sm font-semibold">Adicionar manutenção mensal (opcional)</span>
+                    <span className="text-sm font-semibold">{MAINTENANCE.price}/mês</span>
+                  </div>
+                  <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">
+                    Atualizações de promoções, banners, fotos, textos e ajustes no site + suporte prioritário no WhatsApp.
+                  </p>
+                  <p className="mt-2 text-[11px] leading-relaxed text-amber-800 dark:text-amber-300">
+                    ⚠️ A manutenção só é mantida conforme o <strong>pagamento mensal na data combinada via WhatsApp</strong>.
+                    Em caso de <strong>não pagamento, o acesso à manutenção é perdido</strong>. Sem fidelidade — cancele quando quiser.
+                  </p>
+                </div>
+              </label>
+
 
               <div className="mt-6 flex flex-col gap-2">
                 <button
