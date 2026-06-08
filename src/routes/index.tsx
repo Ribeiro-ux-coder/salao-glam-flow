@@ -465,6 +465,44 @@ function Plans({ onChoose }: { onChoose: (p: Plan) => void }) {
         <p className="mt-8 text-center text-xs text-muted-foreground">
           Valor do sinal sempre descontado do total. Reserva confirmada após envio do comprovante.
         </p>
+
+        {/* Manutenção opcional */}
+        <FadeIn delay={0.1}>
+          <div className="mt-12 rounded-2xl border-2 border-dashed hairline bg-surface p-6 sm:p-8">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <span className="inline-block rounded-full bg-foreground px-2.5 py-1 text-[10px] uppercase tracking-widest text-background">
+                  Opcional
+                </span>
+                <h3 className="mt-3 text-xl font-semibold tracking-tight sm:text-2xl">
+                  Manutenção mensal
+                </h3>
+                <p className="mt-2 max-w-xl text-sm text-muted-foreground">
+                  Atualizações de promoções, banners, textos, fotos e pequenos ajustes
+                  no seu site. Suporte prioritário via WhatsApp.
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-3xl font-semibold tracking-tight">{MAINTENANCE.price}</p>
+                <p className="text-xs text-muted-foreground">{MAINTENANCE.period}</p>
+              </div>
+            </div>
+
+            <div className="mt-5 rounded-xl border border-amber-500/40 bg-amber-50 p-4 text-[12px] leading-relaxed text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+              <p className="font-semibold">⚠️ Importante — leia antes de contratar:</p>
+              <ul className="mt-2 list-disc space-y-1 pl-4">
+                <li>A manutenção é <strong>totalmente opcional</strong> e independente do plano de criação.</li>
+                <li>O serviço só é mantido <strong>conforme o pagamento mensal</strong>, na data combinada e confirmada via WhatsApp.</li>
+                <li>Em caso de <strong>não pagamento</strong> na data, o cliente <strong>perde o acesso à manutenção</strong> automaticamente (ajustes, suporte prioritário e atualizações).</li>
+                <li>Não há fidelidade: o cliente pode cancelar a qualquer momento avisando pelo WhatsApp.</li>
+              </ul>
+            </div>
+
+            <p className="mt-4 text-[11px] text-muted-foreground">
+              Você pode adicionar a manutenção no momento da reserva ou depois, pelo WhatsApp.
+            </p>
+          </div>
+        </FadeIn>
       </div>
     </section>
   );
