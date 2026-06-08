@@ -883,6 +883,36 @@ function PaymentFlow({
                 <li className="flex items-center gap-2"><LockIcon /> Sem cobrança recorrente</li>
               </ul>
 
+              {/* Manutenção opcional */}
+              <label
+                htmlFor="opt-maintenance"
+                className={`mt-5 flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition-colors ${
+                  wantsMaintenance ? "border-foreground bg-surface" : "hairline bg-background"
+                }`}
+              >
+                <input
+                  id="opt-maintenance"
+                  type="checkbox"
+                  checked={wantsMaintenance}
+                  onChange={(e) => setWantsMaintenance(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 accent-foreground"
+                />
+                <div className="flex-1">
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <span className="text-sm font-semibold">Adicionar manutenção mensal (opcional)</span>
+                    <span className="text-sm font-semibold">{MAINTENANCE.price}/mês</span>
+                  </div>
+                  <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">
+                    Atualizações de promoções, banners, fotos, textos e ajustes no site + suporte prioritário no WhatsApp.
+                  </p>
+                  <p className="mt-2 text-[11px] leading-relaxed text-amber-800 dark:text-amber-300">
+                    ⚠️ A manutenção só é mantida conforme o <strong>pagamento mensal na data combinada via WhatsApp</strong>.
+                    Em caso de <strong>não pagamento, o acesso à manutenção é perdido</strong>. Sem fidelidade — cancele quando quiser.
+                  </p>
+                </div>
+              </label>
+
+
               <div className="mt-6 flex flex-col gap-2">
                 <button
                   onClick={() => setStep(2)}
