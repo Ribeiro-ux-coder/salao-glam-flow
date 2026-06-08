@@ -79,7 +79,7 @@ const SECTIONS: Array<{ title: string; body: string | string[] }> = [
     ],
   },
   {
-    title: "10. Privacidade e LGPD",
+    title: "11. Privacidade e LGPD",
     body: [
       "Em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018), os dados informados pelo cliente (nome, WhatsApp, e-mail, endereço, fotos e textos do salão) são tratados exclusivamente para a execução do projeto contratado, comunicação e cumprimento de obrigações legais. A base legal é a execução de contrato e o consentimento do titular.",
       "Os dados preenchidos no formulário ficam armazenados localmente no aparelho do cliente (localStorage) até o envio para o nosso WhatsApp. Não compartilhamos dados com terceiros, exceto com o Mercado Pago para processamento de pagamento, conforme a política da própria plataforma.",
@@ -87,12 +87,12 @@ const SECTIONS: Array<{ title: string; body: string | string[] }> = [
     ],
   },
   {
-    title: "11. Alterações destes Termos",
+    title: "12. Alterações destes Termos",
     body:
       "Estes Termos podem ser atualizados a qualquer momento. A versão vigente é sempre a publicada nesta página.",
   },
   {
-    title: "12. Foro",
+    title: "13. Foro",
     body:
       "Fica eleito o foro da Comarca de Macaé/RJ para dirimir quaisquer dúvidas oriundas destes Termos.",
   },
