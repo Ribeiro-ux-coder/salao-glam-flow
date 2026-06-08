@@ -107,6 +107,11 @@ const PLANS = [
   },
 ] as const;
 
+const MAINTENANCE = {
+  price: "R$ 79,90",
+  priceValue: 79.9,
+  period: "por mês",
+} as const;
 
 type Plan = (typeof PLANS)[number];
 
