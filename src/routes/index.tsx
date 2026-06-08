@@ -614,6 +614,14 @@ function PaymentFlow({
   const [copied, setCopied] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(PAYMENT_WINDOW_SECONDS);
   const [expired, setExpired] = useState(false);
+  const MAINT_KEY = "nex_funnel_maint_v1";
+  const [wantsMaintenance, setWantsMaintenance] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem(MAINT_KEY) === "1";
+  });
+  useEffect(() => {
+    try { localStorage.setItem(MAINT_KEY, wantsMaintenance ? "1" : "0"); } catch { /* noop */ }
+  }, [wantsMaintenance]);
 
   // Persist step & paid state
   useEffect(() => {
