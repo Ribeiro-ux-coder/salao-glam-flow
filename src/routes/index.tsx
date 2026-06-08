@@ -791,6 +791,8 @@ function PaymentFlow({
       `*Promoção Dia dos Namorados:*`,
       form.promo || "-",
       ``,
+      `*Manutenção mensal (${MAINTENANCE.price}/mês):* ${wantsMaintenance ? "SIM — quero contratar. Ciente de que só é mantida com o pagamento na data combinada via WhatsApp e que, em caso de não pagamento, perco o acesso." : "Não, por enquanto não."}`,
+      ``,
       `Vou anexar o comprovante do pagamento nesta conversa em seguida.`,
     ].join("\n");
 
